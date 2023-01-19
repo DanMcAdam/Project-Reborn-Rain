@@ -10,23 +10,23 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b582cd36448c22b41ab3c5f3bdafee4a, type: 3}
-  m_Name: FrogHop0
+  m_Name: RecurringEvent1
   m_EditorClassIdentifier: 
-  ID: 0
-  UpgradeImage: {fileID: 21300004, guid: 9bd9265533309304db171aa9f916554a, type: 3}
-  UpgradeLevel: 1
-  Name: Tadpole Leap
-  Description: After Launching with Jumpslam, hold down the secondary key to launch
-    again immediately on landing
+  ID: 1
+  UpgradeImage: {fileID: 21300046, guid: bad6c0f0bf6c3aa4690d400a757fa284, type: 3}
+  UpgradeLevel: 2
+  Name: Coincidence
+  Description: When your Jump Slam generates an expolosion, {0} extra explosions
+    are generated {1} seconds apart
   IsLastUpgrade: 0
-  NextLevel: {fileID: 11400000, guid: c061d606b4e3d6540b2cb0360e4aff01, type: 2}
-  PreviousLevel: {fileID: 0}
+  NextLevel: {fileID: 11400000, guid: 36528699e147f5f4e8844389ff6f4a1f, type: 2}
+  PreviousLevel: {fileID: 11400000, guid: da86ef5d4b298bf45b1caa1d1802a8fe, type: 2}
   UseIncrease: 0
   ChargeSpeed: 0
   CooldownReduction: 0
-  Time: 0
-  JumpSlamVars: 
+  Time: 2
+  JumpSlamVars: 030000000a000000
   RadiusChange: 0
   DamageMultiplier: 0
   RangeMultiplier: 0
-  Count: 0
+  Count: 2

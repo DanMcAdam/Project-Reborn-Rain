@@ -1,7 +1,9 @@
 using MoreMountains.Feedbacks;
 using StarterAssets;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class JumpSlam : CharacterAbility
 {
@@ -17,8 +19,34 @@ public class JumpSlam : CharacterAbility
 
     public float LaunchPower { get => ScriptableObject.MovementPower; }
 
-    private int _extraLaunches = 1;
+    public float BaseExplosionRadius;
+    private float _modifiedExplosionRadius => BaseExplosionRadius + (BaseExplosionRadius * (_explosionRadiusTempModifier + _explosionRadiusMultiplier));
+    private float _explosionRadiusMultiplier;
+    private float _explosionRadiusTempModifier;
+
+    public int BaseExplosionDamage;
+    private int _modifiedExplosionDamage => BaseExplosionDamage + Mathf.CeilToInt(BaseExplosionDamage * (_explosionDamageMultiplier + _explosionDamageTempModifier));
+    private float _explosionDamageMultiplier;
+    private float _explosionDamageTempModifier => _extraLaunchCurrentMultiplier;
+
+    #region Upgrade Stats
+    #region Frog Hop
+    private int _extraLaunches;
     private int _extraLaunchesAvailable;
+    private float _extraLaunchMultiplier;
+    private float _extraLaunchCurrentMultiplier => (_extraLaunches - _extraLaunchesAvailable) * _extraLaunchMultiplier;
+    #endregion
+
+    #region Recurring Event
+    private int _recurringExplosions;
+    private float _recurringExplosionInterval;
+    #endregion
+
+    #region Shielding Leap
+    int _bonusShield;
+    float _shieldDuration;
+    #endregion
+    #endregion
     private bool _showLineAnyway => _abilitycontroller.Inputs.SecondarySpecialHeld && _extraLaunchesAvailable > 0;
 
     private float _verticalAddition = .5f;
@@ -36,13 +64,11 @@ public class JumpSlam : CharacterAbility
     private PlayerAttack _playerAttack;
     private ParticleSystem _vfx { get => ScriptableObject.ParticleSystems[0]; }
 
-    public override List<BaseUpgrade> AvailableUpgrades { get; set; }
-
-    public override List<BaseUpgrade> UsedUpgrades { get; set; }
+    public override List<BaseUpgradeScriptableObject> HeldUpgrades { get; set; }
 
 
 
-private MMMiniObjectPooler _explosionPool;
+    private MMMiniObjectPooler _explosionPool;
     public override void InitializeAbility(ThirdPersonController thirdPersonController, PlayerAbilityController playerAbilityController)
     {
         base.InitializeAbility(thirdPersonController, playerAbilityController);
@@ -61,6 +87,8 @@ private MMMiniObjectPooler _explosionPool;
             }
         }
 
+        BaseExplosionRadius = ScriptableObject.AOE;
+
         _projectionSphere = Instantiate(ScriptableObject.OtherStuff[0]);
         _projectionSphere.SetActive(false);
 
@@ -70,7 +98,9 @@ private MMMiniObjectPooler _explosionPool;
         _explosionPool.GameObjectToPool = ScriptableObject.AreaOfEffect.gameObject;
         _explosionPool.FillObjectPool();
 
-        _playerAttack = new PlayerAttack(ScriptableObject.Damage, ScriptableObject.Force, Random.Range(0, 10000), true);
+        BaseExplosionDamage = ScriptableObject.Damage;
+
+        _playerAttack = new PlayerAttack(ScriptableObject.Damage, ScriptableObject.Force, UnityEngine.Random.Range(0, 10000), true);
     }
 
     public override bool Tick(bool released)
@@ -109,20 +139,13 @@ private MMMiniObjectPooler _explosionPool;
 
                 AudioManager.Instance.PlayAudioInstance(ScriptableObject.AudioRef[0], "JumpSlam", _moveController.transform, 1);
 
-                _playerAttack.ID = UnityEngine.Random.Range(0, 10000);
+                GenerateExplosion();
 
-                _playerAttack.HitPosition = PlayerPosition;
-                AreaOfEffect aoeObj = _explosionPool.GetPooledGameObject().GetComponent<AreaOfEffect>();
-                if (!aoeObj.ParticlesInstantiated) aoeObj.SetupParticles(_vfx);
-                aoeObj.PlayerAttack = _playerAttack;
-                aoeObj.AbilityController = _abilitycontroller;
-                aoeObj.AOE = ScriptableObject.AOE;
-                aoeObj.SetOff();
-
-                if (_abilitycontroller.Inputs.SecondarySpecialHeld && _extraLaunchesAvailable > 0) 
+                if (_abilitycontroller.Inputs.SecondarySpecialHeld && _extraLaunchesAvailable > 0)
                 {
                     _extraLaunchesAvailable--;
-                    return false; 
+                    
+                    return false;
                 }
                 else
                 { return true; }
@@ -137,9 +160,26 @@ private MMMiniObjectPooler _explosionPool;
             }
         }
         return false;
+    }
 
+    private void GenerateExplosion()
+    {
+        for (int i = 0; i < _recurringExplosions + 1; i++) 
+        {
+            float delay = i * _recurringExplosionInterval;
 
+            _playerAttack.ID = UnityEngine.Random.Range(0, 10000);
 
+            _playerAttack.HitPosition = PlayerPosition;
+            _playerAttack.Damage = _modifiedExplosionDamage;
+
+            AreaOfEffect aoeObj = _explosionPool.GetPooledGameObject().GetComponent<AreaOfEffect>();
+            if (!aoeObj.ParticlesInstantiated) aoeObj.SetupParticles(_vfx);
+            aoeObj.PlayerAttack = _playerAttack;
+            aoeObj.AbilityController = _abilitycontroller;
+            aoeObj.AOE = _modifiedExplosionRadius;
+            aoeObj.SetOff(delay);
+        }
     }
 
     private void ShowJumpPredictionLine(Vector3 startPos, Vector3 xOffset, Vector3 startVelocity)
@@ -152,8 +192,8 @@ private MMMiniObjectPooler _explosionPool;
         int i = 0;
         LineRenderer.SetPosition(i, xOffset);
         Vector3 xCorrection = xOffset;
-        _projectionSphere.transform.localScale = (ScriptableObject.AOE * 2) * Vector3.one;
-        for (float time = 0; time < _linePoints; time+=_timeBetweenPoint)
+        _projectionSphere.transform.localScale = (_modifiedExplosionRadius * 2) * Vector3.one;
+        for (float time = 0; time < _linePoints; time += _timeBetweenPoint)
         {
             i++;
             xCorrection.x = Mathf.Lerp(xCorrection.x, startPos.x, time);
@@ -163,14 +203,14 @@ private MMMiniObjectPooler _explosionPool;
             LineRenderer.SetPosition(i, point);
 
             Vector3 lastPosition = LineRenderer.GetPosition(i - 1);
-            if (Physics.Raycast(lastPosition, (point - lastPosition).normalized, out RaycastHit hit, 
+            if (Physics.Raycast(lastPosition, (point - lastPosition).normalized, out RaycastHit hit,
                 (point - lastPosition).magnitude, _playerCollisionMask))
             {
                 LineRenderer.SetPosition(i, hit.point);
                 LineRenderer.positionCount = i + 1;
                 _projectionSphere.transform.position = hit.point;
                 return;
-            }    
+            }
         }
     }
 
@@ -195,8 +235,67 @@ private MMMiniObjectPooler _explosionPool;
         _startupBuffer = 0;
     }
 
-    public override void ApplyUpgrade(BaseUpgrade upgrade)
+    public override void ApplyUpgrade(BaseUpgradeScriptableObject upgrade)
     {
-        throw new System.NotImplementedException();
+        BaseJumpSlamScriptableObject switchedUpgrade = upgrade as BaseJumpSlamScriptableObject;
+        switch (switchedUpgrade.ID)
+        {
+            case 0:
+                {
+                    switch (switchedUpgrade.UpgradeLevel)
+                    {
+                        case 1:
+                            {
+                                _extraLaunches = switchedUpgrade.Count;
+                            }
+                            break;
+                        case 2:
+                            {
+                                _extraLaunches += switchedUpgrade.Count;
+                                _extraLaunchMultiplier = switchedUpgrade.DamageMultiplier;
+                            }
+                            break;
+                        case 3:
+                            {
+                                _extraLaunches += switchedUpgrade.Count;
+                                _extraLaunchMultiplier = switchedUpgrade.DamageMultiplier;
+                            }
+                            break;
+                    }
+                };
+                break;
+            case 1:
+                {
+                    switch (switchedUpgrade.UpgradeLevel)
+                    {
+                        case 1:
+                            {
+                                _recurringExplosions = switchedUpgrade.Count;
+                                _recurringExplosionInterval = switchedUpgrade.Time;
+                            }
+                            break;
+                        case 2:
+                            {
+                                _recurringExplosions = switchedUpgrade.Count;
+                                _recurringExplosionInterval = switchedUpgrade.Time;
+                            }
+                            break;
+                        case 3:
+                            {
+                                _recurringExplosions = switchedUpgrade.Count;
+                                _recurringExplosionInterval = switchedUpgrade.Time;
+                            }
+                            break;
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    public override BaseUpgradeScriptableObject RequestUpgrade()
+    {
+        return AvailableUpgrades[Random.Range(0, AvailableUpgrades.Count)];
     }
 }

@@ -2,16 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Sirenix.Serialization;
+using Sirenix.OdinInspector;
 
-public abstract class BaseUpgrade : MonoBehaviour 
+public class BaseUpgrade 
 {
-    public abstract string GetName();
-    public abstract string GetDescription();
-    public abstract int GetUpgradeLevel();
-    public abstract int GetID();
-    public abstract int GetUseIncrease();
-    public abstract bool GetIsLastUpgrade();
-    public abstract void Initialize();
+    public BaseUpgradeScriptableObject scriptableObject;
 
-    public abstract Image GetImage();
+
+    public bool IsLastUpgrade;
+
+    public Image SkillImage;
 }

@@ -11,8 +11,8 @@ public class PowerShot : CharacterAbility
     public override Vector3 PlayerPosition { get => _moveController.transform.position; }
 
     public override SOCharacterAbility ScriptableObject { get; set; }
-    public override List<BaseUpgrade> AvailableUpgrades { get; set; }
-    public override List<BaseUpgrade> UsedUpgrades { get; set; }
+
+    public override List<BaseUpgradeScriptableObject> HeldUpgrades { get; set; }
 
     public EventInstance _instance;
 
@@ -133,7 +133,12 @@ public class PowerShot : CharacterAbility
         _timer.Reset();
     }
 
-    public override void ApplyUpgrade(BaseUpgrade upgrade)
+    public override BaseUpgradeScriptableObject RequestUpgrade()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void ApplyUpgrade(BaseUpgradeScriptableObject upgrade)
     {
         throw new System.NotImplementedException();
     }

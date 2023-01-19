@@ -11,6 +11,10 @@ public class AreaOfEffect : MonoBehaviour
     public ParticleSystem Vfx;
     public PlayerAbilityController AbilityController;
 
+    public TimerScript Countdown;
+
+    private bool delayed = false;
+
     public AreaOfEffect(PlayerAbilityController abilityController, PlayerAttack playerAttack, ParticleSystem vfx, float aOE)
     {
         PlayerAttack = playerAttack;
@@ -19,6 +23,7 @@ public class AreaOfEffect : MonoBehaviour
         Vfx.Stop();
         AbilityController = abilityController;
         ParticlesInstantiated = true;
+        Countdown = new TimerScript();
     }
     
     public AreaOfEffect()
@@ -33,6 +38,24 @@ public class AreaOfEffect : MonoBehaviour
         ParticlesInstantiated = true;
     }
 
+    private void Update()
+    {
+        if (delayed)
+        {
+            if (Countdown.Tick(Time.deltaTime))
+            {
+                SetOff();
+            }
+        }
+    }
+
+    public void SetOff(float delay)
+    {
+        Countdown.CountdownTime = delay;
+        Countdown.Reset();
+        delayed = true;
+    }
+
     public void SetOff()
     {
         Vfx.transform.position = PlayerAttack.HitPosition;
@@ -43,7 +66,7 @@ public class AreaOfEffect : MonoBehaviour
             if (subPart.name == "Shockwave")
             {
                 main = subPart.main;
-                main.startSizeMultiplier = AOE; 
+                main.startSizeMultiplier = AOE;
             }
             else
             {
@@ -70,6 +93,8 @@ public class AreaOfEffect : MonoBehaviour
         }
         Invoke("Disable", 1);
     }
+
+
 
     private void Disable()
     {

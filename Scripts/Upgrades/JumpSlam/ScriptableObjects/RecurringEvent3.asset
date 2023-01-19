@@ -10,23 +10,23 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b582cd36448c22b41ab3c5f3bdafee4a, type: 3}
-  m_Name: FrogHop1
+  m_Name: RecurringEvent3
   m_EditorClassIdentifier: 
-  ID: 0
-  UpgradeImage: {fileID: 21300060, guid: 9bd9265533309304db171aa9f916554a, type: 3}
-  UpgradeLevel: 2
-  Name: Frog Hop
-  Description: Frog Hop now increases in damage and AOE radius by {0}% with each
-    subsequent hop. +{1} extra hop
+  ID: 1
+  UpgradeImage: {fileID: 21300046, guid: bad6c0f0bf6c3aa4690d400a757fa284, type: 3}
+  UpgradeLevel: 3
+  Name: Pattern
+  Description: When your Jump Slam generates an expolosion, {0} extra explosions
+    are generated {1} seconds apart. Each subsequent explosion is {2}% larger
   IsLastUpgrade: 1
   NextLevel: {fileID: 0}
-  PreviousLevel: {fileID: 11400000, guid: 63c228e43c7e5da48a36c4ac77c2b7fd, type: 2}
+  PreviousLevel: {fileID: 11400000, guid: 662bc8f492fb1df4fbd932b6bd668ab5, type: 2}
   UseIncrease: 0
   ChargeSpeed: 0
   CooldownReduction: 0
-  Time: 0
-  JumpSlamVars: 0000000003000000
-  RadiusChange: 0.1
-  DamageMultiplier: 0.1
+  Time: 1
+  JumpSlamVars: 030000000a00000000000000
+  RadiusChange: 0.2
+  DamageMultiplier: 0
   RangeMultiplier: 0
-  Count: 0
+  Count: 3
