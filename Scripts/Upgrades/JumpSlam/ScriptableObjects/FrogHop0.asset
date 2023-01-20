@@ -29,4 +29,4 @@ MonoBehaviour:
   RadiusChange: 0
   DamageMultiplier: 0
   RangeMultiplier: 0
-  Count: 0
+  Count: 1

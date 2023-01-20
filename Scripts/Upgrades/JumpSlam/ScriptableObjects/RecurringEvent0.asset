@@ -24,7 +24,7 @@ MonoBehaviour:
   UseIncrease: 0
   ChargeSpeed: 0
   CooldownReduction: 0
-  Time: 3
+  Time: 2
   JumpSlamVars: 030000000a000000
   RadiusChange: 0
   DamageMultiplier: 0

@@ -34,12 +34,14 @@ public class JumpSlam : CharacterAbility
     private int _extraLaunches;
     private int _extraLaunchesAvailable;
     private float _extraLaunchMultiplier;
-    private float _extraLaunchCurrentMultiplier => (_extraLaunches - _extraLaunchesAvailable) * _extraLaunchMultiplier;
+    public float _extraLaunchCurrentMultiplier => (_extraLaunches - _extraLaunchesAvailable) * _extraLaunchMultiplier;
     #endregion
 
     #region Recurring Event
     private int _recurringExplosions;
     private float _recurringExplosionInterval;
+    private float _recurringExplosionRadiusMultiplier;
+    private float _recurringExplosionRadiusCurrentMultiplier;
     #endregion
 
     #region Shielding Leap
@@ -99,6 +101,8 @@ public class JumpSlam : CharacterAbility
         _explosionPool.FillObjectPool();
 
         BaseExplosionDamage = ScriptableObject.Damage;
+
+        HeldUpgrades = new List<BaseUpgradeScriptableObject>();
 
         _playerAttack = new PlayerAttack(ScriptableObject.Damage, ScriptableObject.Force, UnityEngine.Random.Range(0, 10000), true);
     }
@@ -164,11 +168,12 @@ public class JumpSlam : CharacterAbility
 
     private void GenerateExplosion()
     {
+        float delay;
         for (int i = 0; i < _recurringExplosions + 1; i++) 
         {
-            float delay = i * _recurringExplosionInterval;
+            delay = i * _recurringExplosionInterval;
 
-            _playerAttack.ID = UnityEngine.Random.Range(0, 10000);
+            _playerAttack.ID = Random.Range(0, 10000);
 
             _playerAttack.HitPosition = PlayerPosition;
             _playerAttack.Damage = _modifiedExplosionDamage;
@@ -177,9 +182,16 @@ public class JumpSlam : CharacterAbility
             if (!aoeObj.ParticlesInstantiated) aoeObj.SetupParticles(_vfx);
             aoeObj.PlayerAttack = _playerAttack;
             aoeObj.AbilityController = _abilitycontroller;
+
             aoeObj.AOE = _modifiedExplosionRadius;
+
+            aoeObj.transform.position = PlayerPosition;
+            aoeObj.gameObject.SetActive(true);
             aoeObj.SetOff(delay);
+
+            _explosionRadiusTempModifier += _recurringExplosionRadiusMultiplier;
         }
+        _explosionRadiusTempModifier = 0;
     }
 
     private void ShowJumpPredictionLine(Vector3 startPos, Vector3 xOffset, Vector3 startVelocity)
@@ -238,6 +250,12 @@ public class JumpSlam : CharacterAbility
     public override void ApplyUpgrade(BaseUpgradeScriptableObject upgrade)
     {
         BaseJumpSlamScriptableObject switchedUpgrade = upgrade as BaseJumpSlamScriptableObject;
+        Debug.Log("applying upgrade " + switchedUpgrade.Name);
+
+        AvailableUpgrades.Remove(switchedUpgrade);
+        if(!switchedUpgrade.IsLastUpgrade) AvailableUpgrades.Add(switchedUpgrade.NextLevel);
+        HeldUpgrades.Add(switchedUpgrade);
+
         switch (switchedUpgrade.ID)
         {
             case 0:
@@ -284,6 +302,7 @@ public class JumpSlam : CharacterAbility
                             {
                                 _recurringExplosions = switchedUpgrade.Count;
                                 _recurringExplosionInterval = switchedUpgrade.Time;
+                                _recurringExplosionRadiusMultiplier = switchedUpgrade.RadiusChange;
                             }
                             break;
                     }
@@ -296,6 +315,9 @@ public class JumpSlam : CharacterAbility
 
     public override BaseUpgradeScriptableObject RequestUpgrade()
     {
-        return AvailableUpgrades[Random.Range(0, AvailableUpgrades.Count)];
+        BaseUpgradeScriptableObject upgrade = AvailableUpgrades[Random.Range(0, AvailableUpgrades.Count)];
+        Debug.Log(upgrade.Name);
+        upgrade.ability = this;
+        return upgrade;
     }
 }

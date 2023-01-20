@@ -8,6 +8,8 @@ public class LootPoint : MonoBehaviour, IInteractable
 
     public List<Gun> GunList = new List<Gun>();
 
+    public bool Upgrades;
+
     private InteractionUI _uI { get => UIManager.Instance.InteractionUI; }
     private PlayerAbilityController _player { get => PlayerManager.Instance.Player; }
     public ParticleSystem ParticleSystem;
@@ -60,7 +62,9 @@ public class LootPoint : MonoBehaviour, IInteractable
     {
         if (IsInteractable)
         { 
-            _uI.StartInteraction(this, GunList); 
+            if (Upgrades == false)
+                _uI.StartInteraction(this, GunList); 
+            else _uI.StartInteraction(this, PlayerManager.Instance.Player.GetUpgrades());
         }
     }
 
@@ -87,7 +91,7 @@ public class LootPoint : MonoBehaviour, IInteractable
 
     public void DisableThisLootPoint()
     {
-        IsInteractable = false;
+        //IsInteractable = false;
         _uI.EndInteraction();
         if (DestroyOnDisable)
         {

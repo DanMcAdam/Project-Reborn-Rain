@@ -22,7 +22,6 @@ public abstract class CharacterAbility : SerializedMonoBehaviour
 
         Debug.Log("CharacterAbility Initialize called");
 
-        AvailableUpgrades = ScriptableObject.AvailableUpgrades;
     }
 
 

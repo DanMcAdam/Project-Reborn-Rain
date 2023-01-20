@@ -1,9 +1,8 @@
-using StarterAssets;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using FMOD.Studio;
 using FMODUnity;
+using StarterAssets;
+using System.Collections.Generic;
+using UnityEngine;
 
 
 public class PowerShot : CharacterAbility
@@ -14,13 +13,23 @@ public class PowerShot : CharacterAbility
 
     public override List<BaseUpgradeScriptableObject> HeldUpgrades { get; set; }
 
-    public EventInstance _instance;
+    public EventInstance _chargeSoundInstance;
 
     private PlayerAttack _playerAttack;
 
+    private int _baseDamage;
+    public int Damage => _baseDamage + Mathf.CeilToInt(_baseDamage * DamageModifier);
+    public float DamageModifier => _fastChargeDamage;
 
-    public float TimeToFullCharge = 3f;
+    public float _chargeSpeedModifier => _fastChargeSpeed;
+    #region Fast Charge
+    private float _fastChargeSpeed;
+    private float _fastChargeDamage;
+    #endregion
 
+
+    public float TimeToFullCharge => _baseTimeToFullCharge - (_baseTimeToFullCharge * _chargeSpeedModifier);
+    private float _baseTimeToFullCharge = 3f;
     private float _chargePower = 0f;
     bool _fullyCharged;
 
@@ -31,15 +40,16 @@ public class PowerShot : CharacterAbility
     TimerScript _timer;
     public override void InitializeAbility(ThirdPersonController thirdPersonController, PlayerAbilityController playerAbilityController)
     {
+        HeldUpgrades = new List<BaseUpgradeScriptableObject>();
         base.InitializeAbility(thirdPersonController, playerAbilityController);
         _playerAttack = new PlayerAttack(ScriptableObject.Damage, ScriptableObject.Force, UnityEngine.Random.Range(0, 10000), true);
         _timer = new TimerScript(TimeToFullCharge);
-        _instance = RuntimeManager.CreateInstance(ScriptableObject.AudioRef[0]);
-        RuntimeManager.AttachInstanceToGameObject(_instance, _moveController.transform);
+        _chargeSoundInstance = RuntimeManager.CreateInstance(ScriptableObject.AudioRef[0]);
+        RuntimeManager.AttachInstanceToGameObject(_chargeSoundInstance, _moveController.transform);
         _gunCharge = Object.Instantiate(ScriptableObject.ParticleSystems[1], _abilitycontroller.MuzzleEnd);
         _backCharge = Object.Instantiate(ScriptableObject.ParticleSystems[3], _abilitycontroller.MuzzleEnd);
         _beam = Object.Instantiate(ScriptableObject.ParticleSystems[2], _abilitycontroller.MuzzleEnd);
-
+        _baseDamage = ScriptableObject.Damage;
     }
 
     public override bool Tick(bool released)
@@ -49,7 +59,7 @@ public class PowerShot : CharacterAbility
         _backCharge.Play();
         if (_chargePower < .01f)
         {
-            _instance.start();
+            _chargeSoundInstance.start();
         }
         _timer.CountdownTime = TimeToFullCharge;
 
@@ -62,7 +72,7 @@ public class PowerShot : CharacterAbility
             }
         }
         _chargePower = Mathf.InverseLerp(_timer.CountdownTime, 0, _timer.CurrentTime);
-        _instance.setParameterByName("ChargeShotLevel", _chargePower);
+        _chargeSoundInstance.setParameterByName("ChargeShotLevel", _chargePower);
 
         if (released)
         {
@@ -77,9 +87,9 @@ public class PowerShot : CharacterAbility
             Ray ray = Camera.main.ScreenPointToRay(screenCenterPoint);
             RaycastHit[] raycastHit = Physics.RaycastAll(ray, 999f, Physics.AllLayers);
             EffectManager.Instance.PlayCameraShakeShoot(PlayerPosition, _chargePower + 1);
-            _playerAttack.Damage = Mathf.CeilToInt(_chargePower * ScriptableObject.Damage);
+            _playerAttack.Damage = Mathf.CeilToInt(_chargePower * Damage);
             _playerAttack.ID = UnityEngine.Random.Range(0, 10000);
-            _instance.setParameterByName("ChargeShotLevel", _chargePower);
+            _chargeSoundInstance.setParameterByName("ChargeShotLevel", _chargePower);
             foreach (RaycastHit hit in raycastHit)
             {
                 if (hit.transform != null)
@@ -135,11 +145,42 @@ public class PowerShot : CharacterAbility
 
     public override BaseUpgradeScriptableObject RequestUpgrade()
     {
-        throw new System.NotImplementedException();
+        BaseUpgradeScriptableObject upgrade = AvailableUpgrades[Random.Range(0, AvailableUpgrades.Count)];
+        Debug.Log(upgrade.Name);
+        upgrade.ability = this;
+        return upgrade;
     }
 
     public override void ApplyUpgrade(BaseUpgradeScriptableObject upgrade)
     {
-        throw new System.NotImplementedException();
+        BasePowerShotScriptableObject switchedUpgrade = upgrade as BasePowerShotScriptableObject;
+        Debug.Log("applying upgrade " + switchedUpgrade.Name);
+
+        AvailableUpgrades.Remove(switchedUpgrade);
+        if (!switchedUpgrade.IsLastUpgrade) AvailableUpgrades.Add(switchedUpgrade.NextLevel);
+        HeldUpgrades.Add(switchedUpgrade);
+
+        switch (switchedUpgrade.ID)
+        {
+            case 0:
+                {
+                    switch (switchedUpgrade.UpgradeLevel)
+                    {
+                        case 1:
+                            _fastChargeDamage = switchedUpgrade.DamageMultiplier;
+                            _fastChargeSpeed = switchedUpgrade.ChargeSpeed;
+                            break;
+                        case 2:
+                            _fastChargeSpeed = switchedUpgrade.ChargeSpeed;
+                            _fastChargeDamage = switchedUpgrade.DamageMultiplier;
+                            break;
+                        case 3:
+                            _fastChargeDamage = switchedUpgrade.DamageMultiplier;
+                            _fastChargeSpeed = switchedUpgrade.ChargeSpeed;
+                            break;
+                    }
+                }
+                break;
+        }
     }
 }

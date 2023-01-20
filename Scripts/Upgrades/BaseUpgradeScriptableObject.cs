@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class BaseUpgradeScriptableObject : ScriptableObject
+public abstract class BaseUpgradeScriptableObject : ScriptableObject
 {
     [InfoBox("Warning: Ensure that ID is correct for this upgrade path", InfoMessageType.Warning)]
     public int ID;
@@ -21,15 +21,20 @@ public class BaseUpgradeScriptableObject : ScriptableObject
     public string Description;
 
     public bool IsLastUpgrade;
-    [HideIf("IsLastUpgrade")]
-    public BaseUpgradeScriptableObject NextLevel;
+
     [HideIf("UpgradeLevel", Value = 1)]
     public BaseUpgradeScriptableObject PreviousLevel;
+    [HideIf("IsLastUpgrade")]
+    public BaseUpgradeScriptableObject NextLevel;
 
     [FoldoutGroup("Universal Modifiers")]
     public int UseIncrease;
     [FoldoutGroup("Universal Modifiers")]
     public float ChargeSpeed, CooldownReduction, Time;
+    [HideInInspector]
+    public CharacterAbility ability;
+
+    public abstract string GetDescription();
 }
 
 public enum SkillVariable

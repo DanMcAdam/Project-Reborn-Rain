@@ -10,13 +10,15 @@ public class InteractionUI : MonoBehaviour
     [SerializeField]
     private GameObject _interactionOverlay;
     [SerializeField]
-    private GameObject _twoChoicePrompt;
+    private GameObject _twoChoicePrompt, _threeChoicePrompt;
     [SerializeField]
     private TextMeshProUGUI _testText;
     [SerializeField]
     private GameObject _interactionPrompt;
     [SerializeField]
     private UIWeaponSelection _weaponSelection;
+    [SerializeField]
+    private UIUpgrade _upgradeSelection;
 
     [SerializeField]
     private GameObject _escMenuOverlay;
@@ -29,7 +31,7 @@ public class InteractionUI : MonoBehaviour
 
     private LootPoint _interactionObject;
     private List<UIWeaponSelection> _weaponSelectionList;
-
+    private List<UIUpgrade> _upgradesList;
     private StarterAssets.StarterAssetsInputs _inputs { get => PlayerManager.Instance.Player.Inputs; }
 
     FMOD.Studio.Bus Master;
@@ -38,6 +40,7 @@ public class InteractionUI : MonoBehaviour
     void Start()
     {
         _weaponSelectionList = new List<UIWeaponSelection>();
+        _upgradesList= new List<UIUpgrade>();
         Master = FMODUnity.RuntimeManager.GetBus("bus:/");
         Master.getVolume(out float volume);
         _volumeSlider.value = volume;
@@ -95,6 +98,31 @@ public class InteractionUI : MonoBehaviour
                 UIWeaponSelection newSelection = Instantiate(_weaponSelection, _twoChoicePrompt.transform);
                 newSelection.PopulateStats(gun, lootPoint);
                 _weaponSelectionList.Add(newSelection);
+            }
+        }
+    }
+
+    public void StartInteraction(LootPoint lootPoint, List<BaseUpgradeScriptableObject> upgradeScripts)
+    {
+        if (!IsInteracting)
+        {
+
+            FreeCursor();
+            _interactionObject = lootPoint;
+            _interactionOverlay.SetActive(true);
+            if (_upgradesList.Count > 0)
+            {
+                foreach (UIUpgrade upgrade in _upgradesList)
+                {
+                    Destroy(upgrade.transform.gameObject);
+                }
+                _upgradesList.Clear();
+            }
+            foreach (BaseUpgradeScriptableObject upgradeScript in upgradeScripts)
+            {
+                UIUpgrade newSelection = Instantiate(_upgradeSelection, _threeChoicePrompt.transform);
+                newSelection.PopulateStats(upgradeScript, lootPoint);
+                _upgradesList.Add(newSelection);
             }
         }
     }

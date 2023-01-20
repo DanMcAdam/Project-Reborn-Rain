@@ -26,7 +26,7 @@ MonoBehaviour:
   CooldownReduction: 0
   Time: 0
   JumpSlamVars: 0000000003000000
-  RadiusChange: 0
-  DamageMultiplier: 0
+  RadiusChange: 0.2
+  DamageMultiplier: 0.2
   RangeMultiplier: 0
-  Count: 0
+  Count: 2

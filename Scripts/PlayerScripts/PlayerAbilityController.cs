@@ -107,7 +107,7 @@ public class PlayerAbilityController : MonoBehaviour
         _aim = GetComponent<ThirdPersonAim>();
         _moveController = GetComponent<ThirdPersonController>();
         Inputs = GetComponent<StarterAssetsInputs>();
-        LineRenderer = GetComponent<LineRenderer>();
+        LineRenderer = GetComponentInChildren<LineRenderer>();
         Effect = GetComponent<EffectApplier>();
         Inventory = GetComponent<PlayerInventory>();
         Inventory.SetPlayer(this);
@@ -208,6 +208,19 @@ public class PlayerAbilityController : MonoBehaviour
     public void SetWeaponStats(Gun newGun)
     {
         _aim.SetWeaponStats(newGun);
+    }
+
+    public void ChooseUpgrade(BaseUpgradeScriptableObject upgrade)
+    {
+        SecondarySpecial.ApplyUpgrade(upgrade);
+    }
+
+    public List<BaseUpgradeScriptableObject> GetUpgrades()
+    {
+        List<BaseUpgradeScriptableObject> upgrades = new List<BaseUpgradeScriptableObject>();
+        for (int i = 0; i < 2; i++) { upgrades.Add(SecondarySpecial.RequestUpgrade()); }
+        upgrades.Add(PrimarySpecial.RequestUpgrade());
+        return upgrades;
     }
 
     //Called by ThirdPersonController to Check Dash Availability

@@ -1,15 +1,17 @@
 using Sirenix.OdinInspector;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Upgrades/Jumpslam")]
-public class BaseJumpSlamScriptableObject : BaseUpgradeScriptableObject
+[CreateAssetMenu(menuName = "Upgrades/PowerShot")]
+public class BasePowerShotScriptableObject : BaseUpgradeScriptableObject
 {
     [BoxGroup("UI")]
-    public SkillVariable[] JumpSlamVars;
+    public SkillVariable[] PowerShotVars;
 
-    [FoldoutGroup("Jumpslam Modifiers")]
+    [FoldoutGroup("PowerShot Modifiers")]
     public float RadiusChange, DamageMultiplier, RangeMultiplier;
-    [FoldoutGroup("Jumpslam Modifiers")]
+    [FoldoutGroup("PowerShot Modifiers")]
     public int Count;
 
     [Button]
@@ -19,9 +21,9 @@ public class BaseJumpSlamScriptableObject : BaseUpgradeScriptableObject
     }
     public override string GetDescription()
     {
-        object[] ConvertedVars = new object[JumpSlamVars.Length];
+        object[] ConvertedVars = new object[PowerShotVars.Length];
         int i = 0;
-        foreach (SkillVariable variable in JumpSlamVars)
+        foreach (SkillVariable variable in PowerShotVars)
         {
             switch (variable)
             {
@@ -43,13 +45,19 @@ public class BaseJumpSlamScriptableObject : BaseUpgradeScriptableObject
                 case SkillVariable.Time:
                     ConvertedVars[i] = Time;
                     break;
+                case SkillVariable.AtkSpeed:
+                    ConvertedVars[i] = (int)(ChargeSpeed * 100);
+                    break;
+                case SkillVariable.Uses:
+                    ConvertedVars[i] = UseIncrease;
+                    break;
                 default:
                     break;
             }
             i++;
         }
 
-        switch (JumpSlamVars.Length)
+        switch (PowerShotVars.Length)
         {
             case 1:
                 return string.Format(Description, ConvertedVars[0]);
@@ -67,4 +75,3 @@ public class BaseJumpSlamScriptableObject : BaseUpgradeScriptableObject
         }
     }
 }
-

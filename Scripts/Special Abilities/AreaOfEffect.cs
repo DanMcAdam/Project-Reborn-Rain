@@ -28,7 +28,7 @@ public class AreaOfEffect : MonoBehaviour
     
     public AreaOfEffect()
     {
-
+        Countdown = new TimerScript();
     }
 
     public void SetupParticles(ParticleSystem particles)
@@ -44,7 +44,9 @@ public class AreaOfEffect : MonoBehaviour
         {
             if (Countdown.Tick(Time.deltaTime))
             {
+                Debug.Log("Countdown Finished");
                 SetOff();
+                delayed = false;
             }
         }
     }
@@ -60,19 +62,21 @@ public class AreaOfEffect : MonoBehaviour
     {
         Vfx.transform.position = PlayerAttack.HitPosition;
         ParticleSystem.MainModule main = Vfx.main;
-        main.startSizeMultiplier = AOE;
+        float sizeFix = AOE * 2;
+        main.startSizeMultiplier = sizeFix;
         foreach (ParticleSystem subPart in Vfx.GetComponentsInChildren<ParticleSystem>())
         {
             if (subPart.name == "Shockwave")
             {
                 main = subPart.main;
-                main.startSizeMultiplier = AOE;
+                main.startSizeMultiplier = sizeFix;
             }
             else
             {
 
             }
         }
+        Vfx.gameObject.SetActive(true);
         Vfx.Play();
         Collider[] colliders = Physics.OverlapSphere(PlayerAttack.HitPosition, AOE);
         foreach (Collider collider in colliders)
@@ -91,7 +95,7 @@ public class AreaOfEffect : MonoBehaviour
                 }
             }
         }
-        Invoke("Disable", 1);
+        Invoke("Disable", 3);
     }
 
 

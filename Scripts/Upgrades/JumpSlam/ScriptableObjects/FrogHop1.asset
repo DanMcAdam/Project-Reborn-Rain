@@ -18,8 +18,8 @@ MonoBehaviour:
   Name: Frog Hop
   Description: Frog Hop now increases in damage and AOE radius by {0}% with each
     subsequent hop. +{1} extra hop
-  IsLastUpgrade: 1
-  NextLevel: {fileID: 0}
+  IsLastUpgrade: 0
+  NextLevel: {fileID: 11400000, guid: 07681e47eef8077479a836b2469a3ee5, type: 2}
   PreviousLevel: {fileID: 11400000, guid: 63c228e43c7e5da48a36c4ac77c2b7fd, type: 2}
   UseIncrease: 0
   ChargeSpeed: 0
@@ -29,4 +29,4 @@ MonoBehaviour:
   RadiusChange: 0.1
   DamageMultiplier: 0.1
   RangeMultiplier: 0
-  Count: 0
+  Count: 1
