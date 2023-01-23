@@ -16,16 +16,19 @@ MonoBehaviour:
   UpgradeImage: {fileID: 21300000, guid: 02800fb9cff14da47a04572790384d8b, type: 3}
   UpgradeLevel: 3
   Name: Finally
-  Description: Increase Charge Speed by {0} and Damage by {1}
+  Description: Increase Charge Speed by {0}% and Damage by {1}%
   IsLastUpgrade: 1
   PreviousLevel: {fileID: 11400000, guid: 02a20b21bbe21184384da31240deaef9, type: 2}
   NextLevel: {fileID: 0}
   UseIncrease: 0
-  ChargeSpeed: 0.71
+  Shield: 0
+  Health: 0
+  ChargeSpeed: 0.7
   CooldownReduction: 0
   Time: 0
+  CritChance: 0
   ability: {fileID: 0}
-  PowerShotVars: 0500000001000000
+  SkillVars: 0500000001000000
   RadiusChange: 0
   DamageMultiplier: 0.5
   RangeMultiplier: 0

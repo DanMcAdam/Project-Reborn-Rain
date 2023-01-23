@@ -19,13 +19,17 @@ MonoBehaviour:
   Description: When your Jump Slam generates an expolosion, {0} extra explosions
     are generated {1} seconds apart
   IsLastUpgrade: 0
-  NextLevel: {fileID: 11400000, guid: 662bc8f492fb1df4fbd932b6bd668ab5, type: 2}
   PreviousLevel: {fileID: 0}
+  NextLevel: {fileID: 11400000, guid: 662bc8f492fb1df4fbd932b6bd668ab5, type: 2}
   UseIncrease: 0
+  Shield: 0
+  Health: 0
   ChargeSpeed: 0
   CooldownReduction: 0
   Time: 2
-  JumpSlamVars: 030000000a000000
+  CritChance: 0
+  ability: {fileID: 0}
+  SkillVars: 030000000a000000
   RadiusChange: 0
   DamageMultiplier: 0
   RangeMultiplier: 0

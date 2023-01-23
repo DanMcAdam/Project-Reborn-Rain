@@ -1,6 +1,7 @@
 using Cinemachine;
 using MoreMountains.Feedbacks;
 using StarterAssets;
+using System;
 using UnityEngine;
 using UnityEngine.Animations.Rigging;
 using UnityEngine.UI;
@@ -52,6 +53,8 @@ public class ThirdPersonAim : MonoBehaviour
     public int MagazineSize;
     public int AmmoCount;
 
+    public event Action<bool> IsAiming;
+
     private ParticleSystem _muzzleFlash;
     private ParticleSystem _bulletHit;
     private AreaOfEffect _areaOfEffect;
@@ -70,7 +73,7 @@ public class ThirdPersonAim : MonoBehaviour
     private Camera _camera;
 
     //TODO make playerAttack from inventory gun
-    PlayerAttack playerAttack;
+    AttackData playerAttack;
 
     private bool _currentlyAiming = false;
     private bool _canShoot;
@@ -110,7 +113,7 @@ public class ThirdPersonAim : MonoBehaviour
             _effectApplier = effectApplier;
         }
 
-        playerAttack = new PlayerAttack();
+        playerAttack = new AttackData();
         playerAttack.Damage = 4; playerAttack.Force = 1000f;
 
         _camera = Camera.main;
@@ -136,6 +139,8 @@ public class ThirdPersonAim : MonoBehaviour
         playerAttack.Damage = gun.BaseDamage;
         playerAttack.Force = gun.Force;
         playerAttack.GeneratedByPlayer = true;
+        playerAttack.CritMultiplier = gun.CritMultiplier;
+        playerAttack.CritChance = gun.CritChance;
         _bulletHit = gun.ParticleSystems[0];
         _muzzleFlash = Instantiate(gun.ParticleSystems[1], MuzzleEnd);
         _shakeIntensity = gun.ScreenShakeIntensity;
@@ -251,8 +256,7 @@ public class ThirdPersonAim : MonoBehaviour
             _thirdPersonController.SetSensitivity(_aimCameraSensitivity);
             _bodyRig.data.offset = new Vector3(-50, 0, 0);
 
-            if (_abilityController.HasSlowfallAiming)
-            { _thirdPersonController.Gravity = _slowFallGravity; }
+            IsAiming?.Invoke(true);
 
             Invoke("SetCrosshair", .05f);
         }
@@ -263,8 +267,7 @@ public class ThirdPersonAim : MonoBehaviour
             _thirdPersonController.SetSensitivity(_normalCameraSensitivity);
             _bodyRig.data.offset = new Vector3(-20, 0, 0);
 
-            if (_abilityController.HasSlowfallAiming)
-            { _thirdPersonController.Gravity = _initialGravity; }
+            IsAiming?.Invoke(false);
 
             SetCrosshair();
         }

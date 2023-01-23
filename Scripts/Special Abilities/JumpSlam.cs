@@ -1,6 +1,5 @@
 using MoreMountains.Feedbacks;
 using StarterAssets;
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -10,6 +9,8 @@ public class JumpSlam : CharacterAbility
     public override SOCharacterAbility ScriptableObject { get; set; }
 
     public override Vector3 PlayerPosition { get => _moveController.transform.position; }
+
+    private bool _grounded;
 
     public float HorizontalDiv = 1.05f;
     public float VerticalDiv = .62f;
@@ -45,8 +46,7 @@ public class JumpSlam : CharacterAbility
     #endregion
 
     #region Shielding Leap
-    int _bonusShield;
-    float _shieldDuration;
+    int _bonusShieldPercent;
     #endregion
     #endregion
     private bool _showLineAnyway => _abilitycontroller.Inputs.SecondarySpecialHeld && _extraLaunchesAvailable > 0;
@@ -63,7 +63,7 @@ public class JumpSlam : CharacterAbility
     private int _playerCollisionMask;
     private GameObject _projectionSphere;
 
-    private PlayerAttack _playerAttack;
+    private AttackData _playerAttack;
     private ParticleSystem _vfx { get => ScriptableObject.ParticleSystems[0]; }
 
     public override List<BaseUpgradeScriptableObject> HeldUpgrades { get; set; }
@@ -71,6 +71,9 @@ public class JumpSlam : CharacterAbility
 
 
     private MMMiniObjectPooler _explosionPool;
+
+    
+
     public override void InitializeAbility(ThirdPersonController thirdPersonController, PlayerAbilityController playerAbilityController)
     {
         base.InitializeAbility(thirdPersonController, playerAbilityController);
@@ -80,10 +83,10 @@ public class JumpSlam : CharacterAbility
         _started = false;
         _startupBuffer = 0;
 
-        _playerCollisionMask = _moveController.gameObject.layer;
+        int _playerCollisionLayer = _moveController.gameObject.layer;
         for (int i = 0; i < 32; i++)
         {
-            if (!Physics.GetIgnoreLayerCollision(_playerCollisionMask, i))
+            if (!Physics.GetIgnoreLayerCollision(_playerCollisionLayer, i))
             {
                 _playerCollisionMask |= 1 << i;
             }
@@ -100,11 +103,13 @@ public class JumpSlam : CharacterAbility
         _explosionPool.GameObjectToPool = ScriptableObject.AreaOfEffect.gameObject;
         _explosionPool.FillObjectPool();
 
+        _moveController.IsGrounded += ChangeGroundState;
+
         BaseExplosionDamage = ScriptableObject.Damage;
 
         HeldUpgrades = new List<BaseUpgradeScriptableObject>();
 
-        _playerAttack = new PlayerAttack(ScriptableObject.Damage, ScriptableObject.Force, UnityEngine.Random.Range(0, 10000), true);
+        _playerAttack = new AttackData(ScriptableObject.Damage, ScriptableObject.Force, UnityEngine.Random.Range(0, 10000), true);
     }
 
     public override bool Tick(bool released)
@@ -136,23 +141,9 @@ public class JumpSlam : CharacterAbility
                 return true;
             }
 
-            if (_moveController.Grounded && _startupBuffer > 5)
+            if (_grounded && _startupBuffer > 10)
             {
-                ResetValues(false);
-                PlayLandingVFX();
-
-                AudioManager.Instance.PlayAudioInstance(ScriptableObject.AudioRef[0], "JumpSlam", _moveController.transform, 1);
-
-                GenerateExplosion();
-
-                if (_abilitycontroller.Inputs.SecondarySpecialHeld && _extraLaunchesAvailable > 0)
-                {
-                    _extraLaunchesAvailable--;
-                    
-                    return false;
-                }
-                else
-                { return true; }
+                return HandleLanding();
             }
 
             if (!_started)
@@ -166,10 +157,34 @@ public class JumpSlam : CharacterAbility
         return false;
     }
 
+    private bool HandleLanding()
+    {
+        ResetValues(false);
+        PlayLandingVFX();
+
+        AudioManager.Instance.PlayAudioInstance(ScriptableObject.AudioRef[0], "JumpSlam", _moveController.transform, 1);
+
+        GenerateExplosion();
+
+        if (_bonusShieldPercent > 0) 
+        {
+            _abilitycontroller.PlayerStats.PlayerShield = Mathf.CeilToInt((_bonusShieldPercent * .01f) * _abilitycontroller.PlayerStats.PlayerMaxHealth);
+        }
+
+        if (_abilitycontroller.Inputs.SecondarySpecialHeld && _extraLaunchesAvailable > 0)
+        {
+            _extraLaunchesAvailable--;
+
+            return false;
+        }
+        else
+        { return true; }
+    }
+
     private void GenerateExplosion()
     {
         float delay;
-        for (int i = 0; i < _recurringExplosions + 1; i++) 
+        for (int i = 0; i < _recurringExplosions + 1; i++)
         {
             delay = i * _recurringExplosionInterval;
 
@@ -253,7 +268,7 @@ public class JumpSlam : CharacterAbility
         Debug.Log("applying upgrade " + switchedUpgrade.Name);
 
         AvailableUpgrades.Remove(switchedUpgrade);
-        if(!switchedUpgrade.IsLastUpgrade) AvailableUpgrades.Add(switchedUpgrade.NextLevel);
+        if (!switchedUpgrade.IsLastUpgrade) AvailableUpgrades.Add(switchedUpgrade.NextLevel);
         HeldUpgrades.Add(switchedUpgrade);
 
         switch (switchedUpgrade.ID)
@@ -308,6 +323,11 @@ public class JumpSlam : CharacterAbility
                     }
                 }
                 break;
+                case 2:
+                {
+                    _bonusShieldPercent = switchedUpgrade.Shield;
+                }
+                break;
             default:
                 break;
         }
@@ -315,9 +335,23 @@ public class JumpSlam : CharacterAbility
 
     public override BaseUpgradeScriptableObject RequestUpgrade()
     {
-        BaseUpgradeScriptableObject upgrade = AvailableUpgrades[Random.Range(0, AvailableUpgrades.Count)];
-        Debug.Log(upgrade.Name);
-        upgrade.ability = this;
+        BaseUpgradeScriptableObject upgrade = null;
+        if (AvailableUpgrades.Count > 0)
+        {
+            upgrade = AvailableUpgrades[Random.Range(0, AvailableUpgrades.Count)];
+            upgrade.ability = this;
+        }
+        if (upgrade == null) { Debug.LogWarning(this.name + " returned a null upgrade"); }
         return upgrade;
+    }
+
+    private void ChangeGroundState(bool state)
+    {
+        _grounded = state;
+    }
+
+    private void OnDisable()
+    {
+        _moveController.IsGrounded -= ChangeGroundState;
     }
 }

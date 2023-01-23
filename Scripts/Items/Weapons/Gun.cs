@@ -9,6 +9,9 @@ public class Gun : Weapon
     public float ReloadTime;
     public float ScreenShakeIntensity;
 
+    public float CritChance;
+    public float CritMultiplier;
+
     public int BasePiercing;
 
     public bool HitScan;

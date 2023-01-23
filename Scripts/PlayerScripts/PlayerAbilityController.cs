@@ -1,11 +1,8 @@
-using System.Collections;
+using StarterAssets;
 using System.Collections.Generic;
 using UnityEngine;
-using StarterAssets;
-using System;
-using MoreMountains.Feedbacks;
-using MoreMountains.FeedbacksForThirdParty;
-using MoreMountains.Tools;
+using Random = UnityEngine.Random;
+
 public class PlayerAbilityController : MonoBehaviour
 {
 
@@ -74,7 +71,21 @@ public class PlayerAbilityController : MonoBehaviour
     public float MaxSecondarySpecialCooldownTime { get => _secondarySpecialCooldown; }
     #endregion
 
+    public List<BaseUpgradeScriptableObject> AvailableUpgrades;
+    public List<BaseUpgradeScriptableObject> HeldUpgrades { get; set; }
+
+
     public bool HasSlowfallAiming;
+    private float _slowfallAimingTime { set { _slowfallTimer.CountdownTime = value; } }
+    private float _slowfallAimingShield;
+    private float _slowfallAimingCrit;
+    private TimerScript _slowfallTimer;
+    private bool _slowfallTimeLeft;
+
+    public bool Grounded { get => _grounded; set { _grounded = value; _slowfallTimer.Reset(); _slowfallTimeLeft = true; Debug.Log("grounded"); } }
+    private bool _grounded;
+    public bool IsAiming { get => _isAiming; set { _isAiming = value; } }
+    private bool _isAiming;
 
     public bool CanJump { get => _moveController.CanJump; }
 
@@ -102,6 +113,7 @@ public class PlayerAbilityController : MonoBehaviour
 
     public void InterruptReload() => _aim.InterruptReload();
 
+
     private void Awake()
     {
         _aim = GetComponent<ThirdPersonAim>();
@@ -112,6 +124,8 @@ public class PlayerAbilityController : MonoBehaviour
         Inventory = GetComponent<PlayerInventory>();
         Inventory.SetPlayer(this);
 
+        HeldUpgrades = new List<BaseUpgradeScriptableObject>();
+
         PrimarySpecial = GetComponent<PowerShot>();
         PrimarySpecial.InitializeAbility(_moveController, this);
         SecondarySpecial = GetComponent<JumpSlam>();
@@ -119,6 +133,16 @@ public class PlayerAbilityController : MonoBehaviour
         DashTimer = new TimerScript(_dashCooldown);
         PrimarySpecialTimer = new TimerScript(_primarySpecialCooldown);
         SecondarySpecialTimer = new TimerScript(_secondarySpecialCooldown);
+        _slowfallTimer = new TimerScript();
+
+        _moveController.IsGrounded += ChangeGroundState;
+        _aim.IsAiming += ChangeAimState;
+    }
+
+    private void OnDisable()
+    {
+        _moveController.IsGrounded -= ChangeGroundState;
+        _aim.IsAiming -= ChangeAimState;
     }
 
     private void Start()
@@ -146,6 +170,9 @@ public class PlayerAbilityController : MonoBehaviour
         {
             HandleSeconarySpecialLogic();
         }
+
+        HandleSlowfallUpgrade();
+
     }
 
     private void HandlePrimarySpecialLogic()
@@ -205,6 +232,38 @@ public class PlayerAbilityController : MonoBehaviour
         CanDash = CurrentDashCount > 0 ? true : false;
     }
 
+    private bool _startedSlowFall;
+    private void HandleSlowfallUpgrade()
+    {
+        if (HasSlowfallAiming)
+        {
+            if (!Grounded && IsAiming && _slowfallTimeLeft)
+            {
+                if (!_startedSlowFall)
+                {
+                    _startedSlowFall = true;
+                    _moveController.TurnOffVerticalMovement(true);
+                    PlayerStats.PlayerCritChance = _slowfallAimingCrit;
+                }
+                if (_slowfallTimer.Tick(Time.deltaTime))
+                {
+                    Debug.Log("no slowfall left");
+                    _slowfallTimeLeft = false;
+                    _moveController.TurnOffVerticalMovement(false);
+                }
+            }
+            else
+            {
+                if (_startedSlowFall)
+                {
+                    _startedSlowFall = false;
+                    PlayerStats.PlayerCritChance = -_slowfallAimingCrit;
+                }
+                _moveController.TurnOffVerticalMovement(false);
+            }
+        }
+    }
+
     public void SetWeaponStats(Gun newGun)
     {
         _aim.SetWeaponStats(newGun);
@@ -212,15 +271,72 @@ public class PlayerAbilityController : MonoBehaviour
 
     public void ChooseUpgrade(BaseUpgradeScriptableObject upgrade)
     {
-        SecondarySpecial.ApplyUpgrade(upgrade);
+        ApplyUpgrade(upgrade);
     }
 
     public List<BaseUpgradeScriptableObject> GetUpgrades()
     {
         List<BaseUpgradeScriptableObject> upgrades = new List<BaseUpgradeScriptableObject>();
-        for (int i = 0; i < 2; i++) { upgrades.Add(SecondarySpecial.RequestUpgrade()); }
-        upgrades.Add(PrimarySpecial.RequestUpgrade());
+        int i = 0;
+        while (upgrades.Count < 3)
+        {
+            if (AvailableUpgrades.Count > 0) upgrades.Add(AvailableUpgrades[Random.Range(0, AvailableUpgrades.Count)]);
+            if (PrimarySpecial.AvailableUpgrades.Count > 0 && upgrades.Count < 3) upgrades.Add(PrimarySpecial.RequestUpgrade());
+            if (SecondarySpecial.AvailableUpgrades.Count > 0 && upgrades.Count < 3) upgrades.Add(SecondarySpecial.RequestUpgrade());
+            i++;
+            if (i == 3) break;
+        }
+
         return upgrades;
+    }
+
+    public void ApplyUpgrade(BaseUpgradeScriptableObject upgrade)
+    {
+        BaseShootBoiUpgradeScriptableObject switchedUpgrade = upgrade as BaseShootBoiUpgradeScriptableObject;
+        Debug.Log("applying upgrade " + switchedUpgrade.Name);
+
+        AvailableUpgrades.Remove(switchedUpgrade);
+        if (!switchedUpgrade.IsLastUpgrade) AvailableUpgrades.Add(switchedUpgrade.NextLevel);
+        HeldUpgrades.Add(switchedUpgrade);
+
+        switch (switchedUpgrade.ID)
+        {
+            case 0:
+                switch (switchedUpgrade.UpgradeLevel)
+                {
+
+                    case 1:
+                        {
+                            HasSlowfallAiming = true;
+                            _slowfallAimingTime = switchedUpgrade.Time;
+                        }
+                        break;
+                    case 2:
+                        {
+                            _slowfallAimingShield = switchedUpgrade.Shield;
+                            _slowfallAimingTime = switchedUpgrade.Time;
+                        }
+                        break;
+                    case 3:
+                        {
+                            _slowfallAimingShield = switchedUpgrade.Shield;
+                            _slowfallAimingTime = switchedUpgrade.Time;
+                            _slowfallAimingCrit = switchedUpgrade.CritChance;
+                        }
+                        break;
+                }
+                break;
+        }
+    }
+
+    private void ChangeGroundState(bool grounded)
+    {
+        Grounded = grounded;
+    }
+
+    private void ChangeAimState(bool aim)
+    {
+        IsAiming = aim;
     }
 
     //Called by ThirdPersonController to Check Dash Availability

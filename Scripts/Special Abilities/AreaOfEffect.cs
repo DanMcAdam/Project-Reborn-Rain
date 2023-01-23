@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class AreaOfEffect : MonoBehaviour
 {
-    public PlayerAttack PlayerAttack;
+    public AttackData PlayerAttack;
     public float AOE;
 
     public bool ParticlesInstantiated;
@@ -15,7 +15,7 @@ public class AreaOfEffect : MonoBehaviour
 
     private bool delayed = false;
 
-    public AreaOfEffect(PlayerAbilityController abilityController, PlayerAttack playerAttack, ParticleSystem vfx, float aOE)
+    public AreaOfEffect(PlayerAbilityController abilityController, AttackData playerAttack, ParticleSystem vfx, float aOE)
     {
         PlayerAttack = playerAttack;
         AOE = aOE;

@@ -4,5 +4,5 @@ using UnityEngine;
 
 public interface IDamageGiver
 {
-    public PlayerAttack GiveDamage();
+    public AttackData GiveDamage();
 }

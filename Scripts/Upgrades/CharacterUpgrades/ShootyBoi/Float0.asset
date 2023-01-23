@@ -9,28 +9,28 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b582cd36448c22b41ab3c5f3bdafee4a, type: 3}
-  m_Name: FrogHop0
+  m_Script: {fileID: 11500000, guid: 334d32ce420fb154da0c1ff956a200f4, type: 3}
+  m_Name: Float0
   m_EditorClassIdentifier: 
   ID: 0
-  UpgradeImage: {fileID: 21300004, guid: 9bd9265533309304db171aa9f916554a, type: 3}
+  UpgradeImage: {fileID: 0}
   UpgradeLevel: 1
-  Name: Tadpole Leap
-  Description: After Launching with Jumpslam, hold down the secondary key to launch
-    again immediately on landing
+  Name: Like a Duck
+  Description: When you aim down sights mid-air, you will slow down and stop falling
+    for up to {0} seconds
   IsLastUpgrade: 0
   PreviousLevel: {fileID: 0}
-  NextLevel: {fileID: 11400000, guid: c061d606b4e3d6540b2cb0360e4aff01, type: 2}
+  NextLevel: {fileID: 11400000, guid: b0c235bd23609244981319ad5044f68e, type: 2}
   UseIncrease: 0
   Shield: 0
   Health: 0
   ChargeSpeed: 0
   CooldownReduction: 0
-  Time: 0
+  Time: 1
   CritChance: 0
   ability: {fileID: 0}
-  SkillVars: 
+  SkillVars: 0a000000
   RadiusChange: 0
   DamageMultiplier: 0
   RangeMultiplier: 0
-  Count: 1
+  Count: 0

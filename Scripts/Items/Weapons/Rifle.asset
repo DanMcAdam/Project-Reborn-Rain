@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4096f6d53aff5c043aa469e9d0edb264, type: 3}
   m_Name: Rifle
   m_EditorClassIdentifier: 
-  BaseDamage: 3
+  BaseDamage: 5
   Interrupt: 5
   AttacksPerMinute: 360
   AttackDistance: 999
@@ -39,6 +39,8 @@ MonoBehaviour:
   MagazineSize: 30
   ReloadTime: 1
   ScreenShakeIntensity: 1
+  CritChance: 0.1
+  CritMultiplier: 0.3
   BasePiercing: 0
   HitScan: 1
   AreaOfEffect: {fileID: 0}

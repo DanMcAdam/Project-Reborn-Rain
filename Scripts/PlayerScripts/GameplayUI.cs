@@ -82,10 +82,21 @@ public class GameplayUI : MonoBehaviour
 
     [SerializeField]
     private Slider _healthSlider;
+    [SerializeField]
+    private Slider _barrierSlider;
+    [SerializeField]
+    private Slider _shieldSlider;
 
     private int _playerHealth => _playerManager.Player.PlayerHealth;
-    private int _playerMaxHealth => _playerManager.Player.PlayerMaxHealth;  
+    private int _playerMaxHealth => _playerManager.Player.PlayerMaxHealth;
+
+    private int _playerBarrier => _playerManager.Player.PlayerStats.PlayerBarrier;
+    private int _playerShield => _playerManager.Player.PlayerStats.PlayerShield;
     private int _healthSliderValue => Mathf.CeilToInt(Mathf.InverseLerp(0, (float)_playerMaxHealth, (float)_playerHealth) * 1000) ;
+
+    //Player shield and barrier may break if shield/barrier value > max health
+    private int _shieldSliderValue => Mathf.CeilToInt(Mathf.InverseLerp(0, (float)_playerMaxHealth, (float)_playerShield) * 1000);
+    private int _barrierSliderValue => Mathf.CeilToInt(Mathf.InverseLerp(0, (float)_playerMaxHealth, (float)_playerBarrier) * 1000);
 
     private void Start()
     {
@@ -216,6 +227,8 @@ public class GameplayUI : MonoBehaviour
     private void HandleHealthUI()
     {
         _healthSlider.value = _healthSliderValue;
+        _shieldSlider.value = _shieldSliderValue;
+        _barrierSlider.value = _barrierSliderValue;
     }
 
 

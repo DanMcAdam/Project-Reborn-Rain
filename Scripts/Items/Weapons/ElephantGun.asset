@@ -39,6 +39,8 @@ MonoBehaviour:
   MagazineSize: 5
   ReloadTime: 0.8
   ScreenShakeIntensity: 2
+  CritChance: 0.3
+  CritMultiplier: 0.5
   BasePiercing: 3
   HitScan: 1
   AreaOfEffect: {fileID: 0}

@@ -120,6 +120,7 @@ public class InteractionUI : MonoBehaviour
             }
             foreach (BaseUpgradeScriptableObject upgradeScript in upgradeScripts)
             {
+                if (upgradeScript == null) continue;
                 UIUpgrade newSelection = Instantiate(_upgradeSelection, _threeChoicePrompt.transform);
                 newSelection.PopulateStats(upgradeScript, lootPoint);
                 _upgradesList.Add(newSelection);

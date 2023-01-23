@@ -15,7 +15,7 @@ public class PowerShot : CharacterAbility
 
     public EventInstance _chargeSoundInstance;
 
-    private PlayerAttack _playerAttack;
+    private AttackData _playerAttack;
 
     private int _baseDamage;
     public int Damage => _baseDamage + Mathf.CeilToInt(_baseDamage * DamageModifier);
@@ -42,7 +42,7 @@ public class PowerShot : CharacterAbility
     {
         HeldUpgrades = new List<BaseUpgradeScriptableObject>();
         base.InitializeAbility(thirdPersonController, playerAbilityController);
-        _playerAttack = new PlayerAttack(ScriptableObject.Damage, ScriptableObject.Force, UnityEngine.Random.Range(0, 10000), true);
+        _playerAttack = new AttackData(ScriptableObject.Damage, ScriptableObject.Force, UnityEngine.Random.Range(0, 10000), true);
         _timer = new TimerScript(TimeToFullCharge);
         _chargeSoundInstance = RuntimeManager.CreateInstance(ScriptableObject.AudioRef[0]);
         RuntimeManager.AttachInstanceToGameObject(_chargeSoundInstance, _moveController.transform);
@@ -145,9 +145,14 @@ public class PowerShot : CharacterAbility
 
     public override BaseUpgradeScriptableObject RequestUpgrade()
     {
-        BaseUpgradeScriptableObject upgrade = AvailableUpgrades[Random.Range(0, AvailableUpgrades.Count)];
-        Debug.Log(upgrade.Name);
-        upgrade.ability = this;
+        BaseUpgradeScriptableObject upgrade = null;
+        if (AvailableUpgrades.Count > 0)
+        {
+            upgrade = AvailableUpgrades[Random.Range(0, AvailableUpgrades.Count)];
+            Debug.Log(upgrade.Name);
+            upgrade.ability = this;
+        }
+        if (upgrade == null) { Debug.LogWarning(this.name + " returned a null upgrade"); }
         return upgrade;
     }
 

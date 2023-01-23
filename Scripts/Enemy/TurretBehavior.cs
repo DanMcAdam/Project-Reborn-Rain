@@ -31,7 +31,7 @@ public class TurretBehavior : MonoBehaviour, IDamageable, IDamageGiver, IEnemyBe
 
     public float TurretHealth;
     private Queue<int> _previousAttackIDs = new Queue<int>(5);
-    private PlayerAttack _playerAttack;
+    private AttackData _playerAttack;
     private Transform _target;
     private TimerScript _attackTimer, _cooldownTimer;
     private FMOD.Studio.EventInstance _instance;
@@ -61,7 +61,7 @@ public class TurretBehavior : MonoBehaviour, IDamageable, IDamageGiver, IEnemyBe
         _attackTimer = new TimerScript();
         _cooldownTimer = new TimerScript();
 
-        _playerAttack = new PlayerAttack();
+        _playerAttack = new AttackData();
         _playerAttack.GeneratedByPlayer = false;
         _playerAttack.Damage = _attackDamage;
         TurretHealth = _turretMaxHealth;
@@ -92,7 +92,7 @@ public class TurretBehavior : MonoBehaviour, IDamageable, IDamageGiver, IEnemyBe
         }
     }
 
-    public PlayerAttack GiveDamage()
+    public AttackData GiveDamage()
     {
         _playerAttack.ID = UnityEngine.Random.Range(0, 10000);
         return _playerAttack;
@@ -158,7 +158,7 @@ public class TurretBehavior : MonoBehaviour, IDamageable, IDamageGiver, IEnemyBe
         _backCharge.Stop();
     }
 
-    public void TakeDamage(PlayerAttack attack)
+    public void TakeDamage(AttackData attack)
     {
         if (_previousAttackIDs.Contains(attack.ID))
         {

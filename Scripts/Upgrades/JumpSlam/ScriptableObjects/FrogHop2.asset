@@ -19,13 +19,17 @@ MonoBehaviour:
   Description: Each subsequent hop increases damage and radius by {0}%. +{1} extra
     hops
   IsLastUpgrade: 1
-  NextLevel: {fileID: 0}
   PreviousLevel: {fileID: 11400000, guid: c061d606b4e3d6540b2cb0360e4aff01, type: 2}
+  NextLevel: {fileID: 0}
   UseIncrease: 0
+  Shield: 0
+  Health: 0
   ChargeSpeed: 0
   CooldownReduction: 0
   Time: 0
-  JumpSlamVars: 0000000003000000
+  CritChance: 0
+  ability: {fileID: 0}
+  SkillVars: 0000000003000000
   RadiusChange: 0.2
   DamageMultiplier: 0.2
   RangeMultiplier: 0

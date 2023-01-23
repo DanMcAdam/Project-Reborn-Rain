@@ -18,14 +18,18 @@ MonoBehaviour:
   Name: Shielded
   Description: Add a temporary shield for {0}% of your max health on landing
   IsLastUpgrade: 0
-  NextLevel: {fileID: 0}
   PreviousLevel: {fileID: 0}
+  NextLevel: {fileID: 0}
   UseIncrease: 0
+  Shield: 15
+  Health: 0
   ChargeSpeed: 0
   CooldownReduction: 0
   Time: 0
-  JumpSlamVars: 00000000
-  RadiusChange: 0.15
+  CritChance: 0
+  ability: {fileID: 0}
+  SkillVars: 06000000
+  RadiusChange: 0
   DamageMultiplier: 0
   RangeMultiplier: 0
   Count: 0
