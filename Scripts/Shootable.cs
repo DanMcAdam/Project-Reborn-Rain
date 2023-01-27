@@ -16,7 +16,7 @@ public class Shootable : MonoBehaviour, IDamageable
 
     public void TakeDamage(AttackData attack)
     {
-        Debug.Log("Player did " + attack.Damage + " Damage");
+        //Debug.Log("Player did " + attack.Damage + " Damage");
         _rgbd.AddExplosionForce(attack.Force, attack.HitPosition, 5f);
         _health -= attack.Damage;
         if (_health <= 0)

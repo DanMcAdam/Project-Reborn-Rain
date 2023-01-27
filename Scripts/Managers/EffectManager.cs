@@ -13,7 +13,9 @@ public class EffectManager : MonoBehaviour
     MMF_CinemachineImpulse _cameraShakeShoot;
     MMF_CinemachineImpulse _cameraShakeGroundSlam;
     MMF_FloatingText _floatingText;
+    MMF_FloatingText _playerDamageFloatingText;
     MMF_ParticlesInstantiation _particlesInstantiation;
+    MMF_Vignette_URP _vignetteURP;
     public static EffectManager Instance;
     private void Awake()
     {
@@ -31,8 +33,10 @@ public class EffectManager : MonoBehaviour
         _cameraShakeShoot = _mMFPlayer.GetFeedbackOfType<MMF_CinemachineImpulse>("CameraShakeShoot");
         _cameraShakeGroundSlam = _mMFPlayer.GetFeedbackOfType<MMF_CinemachineImpulse>("CameraShakeGroundSlam");
         _motionBlur = _mMFPlayer.GetFeedbackOfType<MMF_MotionBlur_URP>();
-        _floatingText = _mMFPlayer.GetFeedbackOfType<MMF_FloatingText>();
+        _playerDamageFloatingText = _mMFPlayer.GetFeedbackOfType<MMF_FloatingText>("Player Damage Floating Text");
+        _floatingText = _mMFPlayer.GetFeedbackOfType<MMF_FloatingText>("Floating Text");
         _particlesInstantiation = _mMFPlayer.GetFeedbackOfType<MMF_ParticlesInstantiation>();
+        _vignetteURP = _mMFPlayer.GetFeedbackOfType<MMF_Vignette_URP>();
     }
 
     public void PlayCameraShakeShoot(Vector3 playPosition, float velocity)
@@ -69,4 +73,13 @@ public class EffectManager : MonoBehaviour
         _particlesInstantiation.Play(playPosition);
     }
 
+    public void PlayerTakeDamage(Vector3 playPosition, float value, float intensity, Transform transform, bool vignette, Gradient color)
+    {
+        if(vignette){ _vignetteURP.Play(playPosition); }
+
+        _playerDamageFloatingText.TargetTransform = transform;
+        _playerDamageFloatingText.AnimateColorGradient = color;
+        _playerDamageFloatingText.Intensity = intensity;
+        _playerDamageFloatingText.Play(playPosition, value);
+    }
 }

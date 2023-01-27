@@ -38,7 +38,7 @@ public class DetectPlayer : MonoBehaviour
             PlayerAbilityController player = collider.GetComponentInParent<PlayerAbilityController>();
             if (player is not null)
             {
-                if (Physics.Raycast(EnemyBehavior.VisionTransform.position, collider.transform.position - EnemyBehavior.VisionTransform.position, out RaycastHit _raycastHit,999f, _environmentLayerMask ))
+                if (Physics.Raycast(EnemyBehavior.VisionTransform.position, collider.transform.position - EnemyBehavior.VisionTransform.position, out RaycastHit _raycastHit,50f, _environmentLayerMask ))
                 {
                     if (_raycastHit.collider == collider)
                     {

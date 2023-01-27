@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using StarterAssets;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,20 +6,15 @@ using Random = UnityEngine.Random;
 
 public class PlayerAbilityController : MonoBehaviour
 {
-
     #region Dash
-    [SerializeField]
-    private float _dashSpeed = 15f;
-    [SerializeField]
-    private float _dashTime = .2f;
-    [SerializeField]
-    private float _dashCooldown = 1.5f;
-    [SerializeField]
-    private int _maxDashCount = 2;
+    private float _dashSpeed => PlayerStats.PlayerDashSpeed;
+    private float _dashTime => PlayerStats.PlayerDashTime;
+    private float _dashCooldown => PlayerStats.PlayerDashCooldown;
+    private int _maxDashCount => PlayerStats.PlayerMaxDashCount;
 
     public TimerScript DashTimer;
 
-    public bool CanDash { get; private set; }
+    public bool CanDash => CurrentDashCount > 0 ? true : false;
     public int CurrentDashCount { get; private set; }
 
     public float MaxDashCooldownTime { get => _dashCooldown; }
@@ -82,7 +78,7 @@ public class PlayerAbilityController : MonoBehaviour
     private TimerScript _slowfallTimer;
     private bool _slowfallTimeLeft;
 
-    public bool Grounded { get => _grounded; set { _grounded = value; _slowfallTimer.Reset(); _slowfallTimeLeft = true; Debug.Log("grounded"); } }
+    public bool Grounded { get => _grounded; set { _grounded = value; _slowfallTimer.Reset(); _slowfallTimeLeft = true;} }
     private bool _grounded;
     public bool IsAiming { get => _isAiming; set { _isAiming = value; } }
     private bool _isAiming;
@@ -91,19 +87,29 @@ public class PlayerAbilityController : MonoBehaviour
 
 
     #region References
+    [FoldoutGroup("References")]
     private ThirdPersonAim _aim;
+    [FoldoutGroup("References")]
     private ThirdPersonController _moveController;
+    [FoldoutGroup("References")]
     public PlayerStats PlayerStats;
+    [FoldoutGroup("References")]
     public PlayerInventory Inventory;
+    [FoldoutGroup("References")]
     public StarterAssetsInputs Inputs;
+    [FoldoutGroup("References")]
     public LineRenderer LineRenderer;
+    [FoldoutGroup("References")]
     public EffectApplier Effect;
+    [FoldoutGroup("References")]
     public PlayerAudio PlayerAudio;
+    [FoldoutGroup("References")]
     public Transform PlayerTarget;
+    [FoldoutGroup("References")]
     public Transform MuzzleEnd => _aim.MuzzleEnd;
+    [FoldoutGroup("References")]
 
     public GameObject ObjectPoolerObject;
-
     public int PlayerHealth => PlayerStats.PlayerHealth;
     public int PlayerMaxHealth => PlayerStats.PlayerMaxHealth;
 
@@ -148,7 +154,6 @@ public class PlayerAbilityController : MonoBehaviour
     private void Start()
     {
         _aim.SetWeaponStats(Inventory.Weapon);
-        _moveController.SetDashStats(_dashTime, _dashSpeed);
         LineRenderer.enabled = false;
         if (!_isRegistered) _isRegistered = PlayerManager.Instance.RegisterPlayer(this);
         CurrentDashCount = _maxDashCount;
@@ -229,7 +234,6 @@ public class PlayerAbilityController : MonoBehaviour
                 CurrentDashCount++;
             }
         }
-        CanDash = CurrentDashCount > 0 ? true : false;
     }
 
     private bool _startedSlowFall;

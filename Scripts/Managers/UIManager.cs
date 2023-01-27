@@ -6,6 +6,7 @@ public class UIManager : MonoBehaviour
 {
     public GameplayUI GameplayUI;
     public InteractionUI InteractionUI;
+    public Camera OverLayCamera;
     #region Singleton
     public static UIManager Instance;
 

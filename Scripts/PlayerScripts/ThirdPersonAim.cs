@@ -265,7 +265,7 @@ public class ThirdPersonAim : MonoBehaviour
             _currentlyAiming = false;
             _aimVirtualCamera.gameObject.SetActive(false);
             _thirdPersonController.SetSensitivity(_normalCameraSensitivity);
-            _bodyRig.data.offset = new Vector3(-20, 0, 0);
+            _bodyRig.data.offset = new Vector3(-50, 0, 0);
 
             IsAiming?.Invoke(false);
 
@@ -382,7 +382,7 @@ public class ThirdPersonAim : MonoBehaviour
     private void Shot(Vector3 shakePosition, Vector3 hitPosition, Vector3 hitNormal, IDamageable damageable)
     {
         playerAttack.HitPosition = hitPosition;
-        playerAttack.ID = UnityEngine.Random.Range(0, 10000);
+        playerAttack = IDGenerator.GenerateID(playerAttack);
         _effectApplier.ApplyAttackEffects(playerAttack, damageable);
         Shot(shakePosition, hitPosition, hitNormal);
     }
