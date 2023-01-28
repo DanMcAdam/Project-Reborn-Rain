@@ -230,7 +230,7 @@ public class FleaBehavior : BaseEnemy
         _aiInput.LookVector = Vector3.zero;
         _aiInput.MoveVector = Vector3.zero;
         _moveController.SetInputs(ref _aiInput);
-        switch (newState)
+        switch (oldState)
         {
             case EnemyBehaviourState.Pursue:
                 break;

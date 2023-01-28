@@ -1,10 +1,8 @@
 using FMODUnity;
-using MoreMountains.Tools;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Animations.Rigging;
-public class TurretBehavior : MonoBehaviour, IDamageable, IDamageGiver, IEnemyBehavior
+public class TurretBehavior : BaseEnemy, IDamageable, IDamageGiver, IEnemyBehavior
 {
     [SerializeField]
     private ParticleSystem _laser, _lightningCharge, _backCharge;
@@ -13,15 +11,11 @@ public class TurretBehavior : MonoBehaviour, IDamageable, IDamageGiver, IEnemyBe
     [SerializeField]
     private float _timeToCharge, _timeBetweenAttacks, MaxAttackDistance;
     [SerializeField]
-    private int _attackDamage, _turretMaxHealth;
+    private int _attackDamage;
     [SerializeField]
     private Transform _followTransform;
     [SerializeField]
     private EventReference _chargeSound;
-    [SerializeField]
-    private DetectPlayer _detectPlayer;
-    [SerializeField]
-    private MMHealthBar _healthBar;
     [SerializeField]
     private List<ParticleSystem> _particles;
     [SerializeField]
@@ -29,19 +23,15 @@ public class TurretBehavior : MonoBehaviour, IDamageable, IDamageGiver, IEnemyBe
     [SerializeField]
     private List<Collider> _colliderList;
 
-    public float TurretHealth;
-    private Queue<int> _previousAttackIDs = new Queue<int>(5);
-    private AttackData _playerAttack;
-    private Transform _target;
-    private TimerScript _attackTimer, _cooldownTimer;
+    private AttackData _attackData;
+    private TimerScript _attackChargeTimer, _cooldownTimer;
     private FMOD.Studio.EventInstance _instance;
     private float _chargePower = 0f;
-    private bool _canCharge = true;
-    public bool IsTargeting => _target != null;
 
-    private float _baseChainStartWeight, _tipChainStartWeight;
+    [SerializeField]
+    private float _baseChainStartWeight = 1, _tipChainStartWeight = 1;
 
-    public Transform VisionTransform { get => _tipChain.data.tip; }
+    public new Transform VisionTransform { get => _tipChain.data.tip; }
 
 
     private void OnDrawGizmos()
@@ -53,86 +43,189 @@ public class TurretBehavior : MonoBehaviour, IDamageable, IDamageGiver, IEnemyBe
     private void Start()
     {
         _instance = RuntimeManager.CreateInstance(_chargeSound);
-        _instance.setVolume(.7F);
+        _instance.setVolume(.4F);
         RuntimeManager.AttachInstanceToGameObject(_instance, _tipChain.transform);
 
-        _baseChainStartWeight = _baseChain.weight;
-        _tipChainStartWeight = _tipChain.weight;
-        _attackTimer = new TimerScript();
+
+        _attackChargeTimer = new TimerScript();
         _cooldownTimer = new TimerScript();
 
-        _playerAttack = new AttackData();
-        _playerAttack.GeneratedByPlayer = false;
-        _playerAttack.Damage = _attackDamage;
-        TurretHealth = _turretMaxHealth;
-
-        _detectPlayer.BeginInvoke(this);
+        _attackData = new AttackData();
+        _attackData.GeneratedByPlayer = false;
+        _attackData.Damage = _attackDamage;
     }
 
     private void Update()
-    {
-
-        if (_attackTimer.CountdownTime != _timeToCharge)
-        {
-            _attackTimer.CountdownTime = _timeToCharge;
-            _attackTimer.Reset();
-        }
-        if (_cooldownTimer.CountdownTime != _timeToCharge)
-        {
-            _cooldownTimer.CountdownTime = _timeToCharge;
-            _cooldownTimer.Reset();
-        }
-        if (!IsTargeting)
-        {
-            Idle();
-        }
-        else
-        {
-            AttackTarget();
-        }
-    }
-
-    public AttackData GiveDamage()
-    {
-        _playerAttack.ID = UnityEngine.Random.Range(0, 10000);
-        return _playerAttack;
-    }
-
-    private void Idle()
-    {
-        _baseChain.weight = 0f;
-        _tipChain.weight = 0f;
-        CancelInvoke();
-    }
-
-    private void AttackTarget()
     {
 
         if (_target != null)
         {
             _followTransform.position = _target.position;
         }
-        if (_canCharge)
+        switch (_currentState)
         {
-
-            if (!_lightningCharge.isPlaying)
-            {
-                PlayChargeEffects();
-            }
-            if (_attackTimer.Tick(Time.deltaTime))
-            {
+            case EnemyBehaviourState.Pursue:
+                break;
+            case EnemyBehaviourState.Idle:
+                break;
+            case EnemyBehaviourState.ChargingAttack:
+                ChargeAttack();
+                break;
+            case EnemyBehaviourState.AttackRecovery:
+                if (_cooldownTimer.Tick(Time.deltaTime))
+                {
+                    TransitionState(EnemyBehaviourState.ChargingAttack);
+                }
+                break;
+            case EnemyBehaviourState.Frozen:
+                break;
+            case EnemyBehaviourState.AttackStyle1:
                 Fire();
-            }
-            else
-            {
-                _chargePower = Mathf.InverseLerp(_attackTimer.CountdownTime, 0, _attackTimer.CurrentTime);
-                _instance.setParameterByName("ChargeShotLevel", _chargePower);
-            }
-
+                break;
+            case EnemyBehaviourState.AttackStyle2:
+                break;
+            case EnemyBehaviourState.Stunned:
+                break;
+            case EnemyBehaviourState.Interrupted:
+                break;
+            case EnemyBehaviourState.Enraged:
+                break;
+            case EnemyBehaviourState.Dying:
+                break;
+            default:
+                break;
         }
-        else if (_cooldownTimer.Tick(Time.deltaTime))
+        //Reset timers if something changes them
+        if (_attackChargeTimer.CountdownTime != _timeToCharge)
         {
-            _canCharge = true;
+            _attackChargeTimer.CountdownTime = _timeToCharge;
+            _attackChargeTimer.Reset();
+        }
+        if (_cooldownTimer.CountdownTime != _timeBetweenAttacks)
+        {
+            _cooldownTimer.CountdownTime = _timeBetweenAttacks;
+            _cooldownTimer.Reset();
+        }
+    }
+    public override void OnStateEnter(EnemyBehaviourState newState, EnemyBehaviourState oldState)
+    {
+        switch (newState)
+        {
+            case EnemyBehaviourState.Pursue:
+                break;
+            case EnemyBehaviourState.Idle:
+                EnterIdle();
+                CancelInvoke();
+                StopChargeEffects();
+                _instance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+                _target = null;
+                Idle();
+                break;
+            case EnemyBehaviourState.ChargingAttack:
+                break;
+            case EnemyBehaviourState.AttackRecovery:
+                break;
+            case EnemyBehaviourState.Frozen:
+                break;
+            case EnemyBehaviourState.AttackStyle1:
+                break;
+            case EnemyBehaviourState.AttackStyle2:
+                break;
+            case EnemyBehaviourState.Stunned:
+                break;
+            case EnemyBehaviourState.Interrupted:
+                break;
+            case EnemyBehaviourState.Enraged:
+                break;
+            case EnemyBehaviourState.Dying:
+                {
+                    _instance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+                    _instance.release();
+                    StopChargeEffects();
+                    foreach (ParticleSystem particle in _particles)
+                    {
+                        particle.Stop();
+                    }
+                    foreach (Collider collider in _colliderList)
+                    {
+                        Rigidbody body = collider.gameObject.AddComponent<Rigidbody>();
+                        collider.transform.parent = null;
+                        collider.gameObject.layer = LayerMask.NameToLayer("NoPlayerCollision");
+                        body.isKinematic = false;
+                        body.useGravity = true;
+                        body.mass = .5f;
+                        body.AddExplosionForce(100, transform.TransformDirection(PlayerManager.Instance.Player.transform.position - body.transform.position).normalized * 5, 20f);
+                        Destroy(collider.gameObject, Random.Range(30f, 90f));
+                    }
+                    _target = null;
+                    Destroy(this.gameObject);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    public override void OnStateExit(EnemyBehaviourState newState, EnemyBehaviourState oldState)
+    {
+        switch (oldState)
+        {
+            case EnemyBehaviourState.Pursue:
+                break;
+            case EnemyBehaviourState.Idle:
+                _tipChain.weight = _tipChainStartWeight;
+                _baseChain.weight = _baseChainStartWeight;
+                InvokeRepeating("CheckDistance", 5f, 1f);
+                break;
+            case EnemyBehaviourState.ChargingAttack:
+                break;
+            case EnemyBehaviourState.AttackRecovery:
+                break;
+            case EnemyBehaviourState.Frozen:
+                break;
+            case EnemyBehaviourState.AttackStyle1:
+                break;
+            case EnemyBehaviourState.AttackStyle2:
+                break;
+            case EnemyBehaviourState.Stunned:
+                break;
+            case EnemyBehaviourState.Interrupted:
+                break;
+            case EnemyBehaviourState.Enraged:
+                break;
+            case EnemyBehaviourState.Dying:
+                break;
+            default:
+                break;
+        }
+    }
+
+    public override AttackData GiveDamage()
+    {
+        _attackData.ID = UnityEngine.Random.Range(0, 10000);
+        return _attackData;
+    }
+
+    private void Idle()
+    {
+        _baseChain.weight = 0f;
+        _tipChain.weight = 0f;
+    }
+
+    private void ChargeAttack()
+    {
+        if (!_lightningCharge.isPlaying)
+        {
+            PlayChargeEffects();
+        }
+        if (_attackChargeTimer.Tick(Time.deltaTime))
+        {
+            TransitionState(EnemyBehaviourState.AttackStyle1);
+        }
+        else
+        {
+            _chargePower = Mathf.InverseLerp(_attackChargeTimer.CountdownTime, 0, _attackChargeTimer.CurrentTime);
+            _instance.setParameterByName("ChargeShotLevel", _chargePower);
         }
     }
 
@@ -145,11 +238,10 @@ public class TurretBehavior : MonoBehaviour, IDamageable, IDamageGiver, IEnemyBe
 
     private void Fire()
     {
-
         _instance.setParameterByName("ChargeShotLevel", 2f);
         _laser.Play();
-        _canCharge = false;
         StopChargeEffects();
+        TransitionState(EnemyBehaviourState.AttackRecovery);
     }
 
     private void StopChargeEffects()
@@ -158,47 +250,6 @@ public class TurretBehavior : MonoBehaviour, IDamageable, IDamageGiver, IEnemyBe
         _backCharge.Stop();
     }
 
-    public void TakeDamage(AttackData attack)
-    {
-        if (_previousAttackIDs.Contains(attack.ID))
-        {
-
-        }
-        else
-        {
-            TurretHealth -= attack.Damage;
-            _healthBar.UpdateBar((float)TurretHealth, 0f, (float)_turretMaxHealth, true);
-            EffectManager.Instance.GenerateFloatingText(transform.position, attack.Damage, this.transform);
-            if (TurretHealth < 0)
-            {
-                _instance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
-                _instance.release();
-                StopChargeEffects();
-                foreach (ParticleSystem particle in _particles)
-                {
-                    particle.Stop();
-                }
-                foreach (Collider collider in _colliderList)
-                {
-                    Rigidbody body = collider.gameObject.AddComponent<Rigidbody>();
-                    collider.transform.parent = null;
-                    collider.gameObject.layer = LayerMask.NameToLayer("NoPlayerCollision");
-                    body.isKinematic = false;
-                    body.useGravity = true;
-                    body.mass = .5f;
-                    body.AddExplosionForce(attack.Force, (attack.HitPosition - body.transform.position).normalized * 5, 20f);
-                    Destroy(collider.gameObject, Random.Range(30f, 90f));
-                }
-                _target = null;
-                Destroy(this.gameObject);
-            }
-            else if (_previousAttackIDs.Count == 5)
-            {
-                _previousAttackIDs.Dequeue();
-            }
-            _previousAttackIDs.Enqueue(attack.ID);
-        }
-    }
 
     private void OnDestroy()
     {
@@ -210,29 +261,41 @@ public class TurretBehavior : MonoBehaviour, IDamageable, IDamageGiver, IEnemyBe
         CancelInvoke();
     }
 
-    public void EnemyDetected(PlayerAbilityController abilityController)
+    public override void EnemyDetected(PlayerAbilityController abilityController)
     {
         _target = abilityController.PlayerTarget;
-        _tipChain.weight = _tipChainStartWeight;
-        _baseChain.weight = _baseChainStartWeight;
-        InvokeRepeating("CheckDistance", 5f, 1f);
+        TransitionState(EnemyBehaviourState.ChargingAttack);
     }
 
     public void CheckDistance()
     {
         if (Vector3.Distance(transform.position, _target.position) > MaxAttackDistance)
         {
-            EnterIdle();
+            TransitionState(EnemyBehaviourState.Idle);
         }
     }
 
-    public void EnterIdle()
+    public override void EnterIdle()
     {
-        CancelInvoke();
-        StopChargeEffects();
-        _instance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
-        _target = null;
-        Idle();
-        _detectPlayer.BeginInvoke(this);
+        base.EnterIdle();
     }
+
+    public override void Awake()
+    {
+        base.Awake();
+    }
+
+    public override void OnEnable()
+    {
+        base.OnEnable();
+    }
+
+    public override void TransitionState(EnemyBehaviourState newState)
+    {
+        base.TransitionState(newState);
+
+
+    }
+
+
 }

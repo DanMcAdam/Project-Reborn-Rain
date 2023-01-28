@@ -27,6 +27,7 @@ public class EffectApplier : MonoBehaviour
         {
             int damage = playerAttack.Damage + Mathf.CeilToInt(playerAttack.Damage * (_critMultiplier + playerAttack.CritMultiplier));
             playerAttack.Damage = damage;
+            playerAttack.WasCrit = true;
         }
         return playerAttack;
     }

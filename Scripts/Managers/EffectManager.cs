@@ -16,6 +16,9 @@ public class EffectManager : MonoBehaviour
     MMF_FloatingText _playerDamageFloatingText;
     MMF_ParticlesInstantiation _particlesInstantiation;
     MMF_Vignette_URP _vignetteURP;
+
+    [SerializeField]
+    private Gradient _notCrit, _crit;
     public static EffectManager Instance;
     private void Awake()
     {
@@ -60,9 +63,10 @@ public class EffectManager : MonoBehaviour
         _motionBlur.Play(playPosition, intensity);
     }
 
-    public void GenerateFloatingText(Vector3 playPosition, float value, Transform transform)
+    public void GenerateFloatingText(Vector3 playPosition, float value, Transform transform, bool wasCrit)
     {
-        _floatingText.TargetTransform = transform;
+        //_floatingText.TargetTransform = transform;
+        _floatingText.AnimateColorGradient = wasCrit ? _crit : _notCrit;
         _floatingText.Play(playPosition, value);
     }
 

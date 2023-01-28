@@ -8,45 +8,45 @@ public class PlayerStats : MonoBehaviour, IDamageable
     [TitleGroup("Player Stats")]
     [SerializeField]
     [TabGroup("Player Stats/TabGroup", "Health and Shields")]
-    [TabGroup("Player Stats/TabGroup/Health and Shields", "Health")]
+    [TabGroup("Player Stats/TabGroup/Health and Shields/HealthGroup", "Health")]
     private int _playerHealth, _playerMaxHealth;
     [SerializeField]
-    [TabGroup("Player Stats/TabGroup/Health and Shields", "Barrier")]
+    [TabGroup("Player Stats/TabGroup/Health and Shields/HealthGroup", "Barrier")]
     private int _playerBarrier, _playerMaxBarrier;
     [SerializeField]
-    [TabGroup("Player Stats/TabGroup/Health and Shields", "Shield")]
+    [TabGroup("Player Stats/TabGroup/Health and Shields/HealthGroup", "Shield")]
     private int _playerShield, _playerMaxShield;
     [SerializeField]
-    [TabGroup("Player Stats/TabGroup/Health and Shields", "Shield")]
+    [TabGroup("Player Stats/TabGroup/Health and Shields/HealthGroup", "Shield")]
     private float _playerShieldTime;
     [SerializeField]
-    [TabGroup("Player Stats/TabGroup/Health and Shields", "Barrier")]
+    [TabGroup("Player Stats/TabGroup/Health and Shields/HealthGroup", "Barrier")]
     private float _playerBarrierRechargeTime;
     [SerializeField]
     [TabGroup("Player Stats/TabGroup", "Movement")]
-    [TabGroup("Player Stats/TabGroup/Movement", "Jump")]
+    [TabGroup("Player Stats/TabGroup/Movement/MovementGroup", "Jump")]
     private int _playerJumpCount;
     [SerializeField]
-    [TabGroup("Player Stats/TabGroup/Movement", "Jump")]
+    [TabGroup("Player Stats/TabGroup/Movement/MovementGroup", "Jump")]
     private float _playerJumpHeight;
     [SerializeField]
-    [TabGroup("Player Stats/TabGroup/Movement", "Dash")]
+    [TabGroup("Player Stats/TabGroup/Movement/MovementGroup", "Dash")]
     private int _playerDashCount, _playerMaxDashCount;
     [SerializeField]
-    [TabGroup("Player Stats/TabGroup/Movement", "Dash")]
+    [TabGroup("Player Stats/TabGroup/Movement/MovementGroup", "Dash")]
     private float _playerDashTime, _playerDashSpeed, _playerDashCooldown;
     [SerializeField]
-    [TabGroup("Player Stats/TabGroup/Movement", "Dash")]
+    [TabGroup("Player Stats/TabGroup/Movement/MovementGroup", "Dash")]
     private float _playerSpeed;
     [SerializeField]
     [TabGroup("Player Stats/TabGroup", "Damage")]
-    [TabGroup("Player Stats/TabGroup/Damage", "Crit")]
+    [TabGroup("Player Stats/TabGroup/Damage/DamageGroup", "Crit")]
     private float _playerBaseCritChance, _playerCritModifier, _playerCritMultiplier;
     [SerializeField]
-    [TabGroup("Player Stats/TabGroup/Damage", "Damage")]
+    [TabGroup("Player Stats/TabGroup/Damage/DamageGroup", "Damage")]
     private float _playerDamageModifier;
     [SerializeField]
-    [TabGroup("Player Stats/TabGroup/Damage", "Damage")]
+    [TabGroup("Player Stats/TabGroup/Damage/DamageGroup", "Damage")]
     private Gradient _shieldColor, _barrierColor, _healthColor;
     #endregion
     #region Exposed Properties

@@ -87,7 +87,7 @@ public class BaseEnemy : MonoBehaviour, IDamageable, IEnemyBehavior, IDamageGive
         {
             AgentCurrentHealth -= attack.Damage;
             _healthBar.UpdateBar((float)AgentCurrentHealth, 0f, (float)AgentStartingHealth, true);
-            EffectManager.Instance.GenerateFloatingText(transform.position, attack.Damage, this.transform);
+            EffectManager.Instance.GenerateFloatingText(attack.HitPosition, attack.Damage, this.transform, attack.WasCrit);
             if (AgentCurrentHealth < 0)
             {
                 TransitionState(EnemyBehaviourState.Dying);
