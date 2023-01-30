@@ -1,3 +1,4 @@
+using MoreMountains.Feedbacks;
 using Sirenix.OdinInspector;
 using System.Collections.Generic;
 using UnityEngine;
@@ -74,6 +75,9 @@ public class PlayerStats : MonoBehaviour, IDamageable
     public float PlayerDashCooldown { get => _playerDashCooldown; set => _playerDashCooldown += value; }
     public int PlayerMaxDashCount { get => _playerMaxDashCount; set => _playerMaxDashCount += value; }
     #endregion
+
+    PlayerAbilityController _abilityController;
+
     [Button]
     public void AddShield()
     {
@@ -89,6 +93,7 @@ public class PlayerStats : MonoBehaviour, IDamageable
     private bool _startRegen;
     void Start()
     {
+        _abilityController = GetComponent<PlayerAbilityController>();
         _playerHealth = _playerMaxHealth;
         _playerBarrier = _playerMaxBarrier;
         _barrierRegenTimer = new TimerScript(_playerBarrierRechargeTime);
@@ -203,6 +208,46 @@ public class PlayerStats : MonoBehaviour, IDamageable
     private void Die()
     {
         Debug.Log("Bummer, I'm dead.");
+    }
+
+    private Dictionary<ExplosionOnTimer, MMMiniObjectPooler> _explosionDictionary;
+
+    public void SetOffPooledEvent(ExplosionOnTimer item)
+    {
+        //TODO create script to handle all player object pools and refactor this method into it
+        //set off by: ExplosionOnTimer Scriptable Object
+
+        AreaOfEffect aoeObj;
+        if (_explosionDictionary == null) _explosionDictionary = new Dictionary<ExplosionOnTimer, MMMiniObjectPooler>();
+
+        if (_explosionDictionary.TryGetValue(item, out MMMiniObjectPooler pool))
+        {
+            aoeObj = pool.GetPooledGameObject().GetComponent<AreaOfEffect>();
+        }
+        else
+        {
+            MMMiniObjectPooler explosionPool = _abilityController.ObjectPoolerObject.AddComponent<MMMiniObjectPooler>();
+            explosionPool.NestWaitingPool = true;
+            explosionPool.PoolSize = 2;
+            explosionPool.GameObjectToPool = item.AOE.gameObject;
+            explosionPool.FillObjectPool();
+            _explosionDictionary.Add(item, explosionPool);
+            aoeObj = explosionPool.GetPooledGameObject().GetComponent<AreaOfEffect>();
+        }
+        AttackData attackData = new AttackData();
+        attackData.Damage = item.Damage;
+        attackData.GeneratedByPlayer = true;
+        attackData.Force = item.Force;
+        attackData.HitPosition = transform.position;
+        attackData = IDGenerator.GenerateID(attackData);
+        aoeObj.PlayerAttack = attackData;
+        aoeObj.AbilityController = _abilityController;
+
+        aoeObj.AOE = item.size;
+
+        aoeObj.transform.position = transform.position;
+        aoeObj.gameObject.SetActive(true);
+        aoeObj.SetOff();
     }
 }
 
