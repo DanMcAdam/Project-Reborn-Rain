@@ -46,6 +46,7 @@ public class BaseEnemy : MonoBehaviour, IDamageable, IEnemyBehavior, IDamageGive
 
     public virtual void TransitionState(EnemyBehaviourState newState)
     {
+        if (_currentState == newState) return;
         EnemyBehaviourState oldState = _currentState;
         OnStateExit(newState, oldState);
         _currentState = newState;
@@ -81,7 +82,7 @@ public class BaseEnemy : MonoBehaviour, IDamageable, IEnemyBehavior, IDamageGive
     {
         if (_previousAttackIDs.Contains(attack.ID))
         {
-
+            Debug.Log("Previous Attack ID used");
         }
         else
         {

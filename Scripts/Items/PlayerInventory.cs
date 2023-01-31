@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -16,6 +17,13 @@ public class PlayerInventory : MonoBehaviour
 
     public List<BaseItem> ItemInventory;
 
+    public BaseItem ItemToAdd;
+
+    [SerializeField, Button]
+    private void AddItem()
+    {
+        PickupItem(ItemToAdd);
+    }
     public void SetPlayer(PlayerAbilityController player)
     {
         _player = player;

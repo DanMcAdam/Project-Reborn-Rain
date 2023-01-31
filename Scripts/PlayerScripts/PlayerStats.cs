@@ -1,7 +1,7 @@
-using MoreMountains.Feedbacks;
 using Sirenix.OdinInspector;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI;
 
 public class PlayerStats : MonoBehaviour, IDamageable
 {
@@ -52,13 +52,13 @@ public class PlayerStats : MonoBehaviour, IDamageable
     #endregion
     #region Exposed Properties
     public int PlayerMaxHealth { get => _playerMaxHealth; }
-    public int PlayerHealth { get => _playerHealth; set { _playerHealth += value; } }
+    public int PlayerHealth { get => _playerHealth; }
     public float PlayerSpeed { get => _playerSpeed; set => _playerSpeed += value; }
     public float PlayerJumpHeight { get => _playerJumpHeight; set => _playerJumpHeight += value; }
     public int PlayerJumpCount { get => _playerJumpCount; }
     public int PlayerDashCount { get => _playerDashCount; }
 
-    public int PlayerShield { get => _playerShield; set { _playerMaxShield += value; _playerShield += value; _shieldQueue.Enqueue(new ShieldStack(_currentTime + _playerShieldTime, value)); } }
+    public int PlayerShield { get => _playerShield; }
 
     public int PlayerBarrier
     {
@@ -76,12 +76,13 @@ public class PlayerStats : MonoBehaviour, IDamageable
     public int PlayerMaxDashCount { get => _playerMaxDashCount; set => _playerMaxDashCount += value; }
     #endregion
 
-    PlayerAbilityController _abilityController;
-
+    public PlayerAbilityController AbilityController;
+    public EffectApplier EffectApplier;
+    [SerializeField]
     [Button]
-    public void AddShield()
+    private void AddShield()
     {
-        PlayerShield = 30;
+        AddShield(30);
     }
 
     private float _currentTime;
@@ -91,9 +92,11 @@ public class PlayerStats : MonoBehaviour, IDamageable
     //called if non-shield damage is taken, restarting barrier regen
     private bool _justTookDamage;
     private bool _startRegen;
+
     void Start()
     {
-        _abilityController = GetComponent<PlayerAbilityController>();
+        AbilityController = GetComponent<PlayerAbilityController>();
+        EffectApplier = AbilityController.Effect;
         _playerHealth = _playerMaxHealth;
         _playerBarrier = _playerMaxBarrier;
         _barrierRegenTimer = new TimerScript(_playerBarrierRechargeTime);
@@ -173,6 +176,7 @@ public class PlayerStats : MonoBehaviour, IDamageable
             }
             else
             {
+                attack = EffectApplier.ApplyOnEventItems(ItemProperties.OnTakeDamage, attack);
                 int attackValue = attack.Damage;
                 if (_playerShield > 0)
                 {
@@ -188,9 +192,14 @@ public class PlayerStats : MonoBehaviour, IDamageable
                 if (attackValue > 0 && _playerBarrier > 0)
                 {
                     if (PlayerBarrier > attackValue) { PlayerBarrier = attackValue; attackValue = 0; EffectManager.Instance.PlayerTakeDamage(transform.position, attack.Damage, attack.Damage, transform, false, _barrierColor); }
-                    else { attackValue -= _playerBarrier; PlayerBarrier = _playerBarrier; }
+                    else { attackValue -= _playerBarrier; PlayerBarrier = _playerBarrier; EffectApplier.ApplyOnEventItems(ItemProperties.OnBarrierBreak); }
                 }
-                if (attackValue > 0) { _playerHealth -= attackValue; EffectManager.Instance.PlayerTakeDamage(transform.position, attack.Damage, attack.Damage, transform, true, _healthColor); }
+                if (attackValue > 0)
+                {
+                    attack = EffectApplier.ApplyOnEventItems(ItemProperties.OnTakeHealthDamage, attack);
+                    _playerHealth -= attackValue;
+                    EffectManager.Instance.PlayerTakeDamage(transform.position, attack.Damage, attack.Damage, transform, true, _healthColor);
+                }
 
                 if (PlayerHealth < 0)
                 {
@@ -205,52 +214,23 @@ public class PlayerStats : MonoBehaviour, IDamageable
         }
     }
 
+    public void HealPlayer(int amount)
+    {
+        amount = EffectApplier.ApplyOnEventItems(ItemProperties.OnHeal, amount);
+    }
+
+    public void AddShield(int amount)
+    {
+        _playerMaxShield += amount;
+        _playerShield += amount;
+        _shieldQueue.Enqueue(new ShieldStack(_currentTime + _playerShieldTime, amount));
+    }
+
     private void Die()
     {
         Debug.Log("Bummer, I'm dead.");
     }
-
-    private Dictionary<ExplosionOnTimer, MMMiniObjectPooler> _explosionDictionary;
-
-    public void SetOffPooledEvent(ExplosionOnTimer item)
-    {
-        //TODO create script to handle all player object pools and refactor this method into it
-        //set off by: ExplosionOnTimer Scriptable Object
-
-        AreaOfEffect aoeObj;
-        if (_explosionDictionary == null) _explosionDictionary = new Dictionary<ExplosionOnTimer, MMMiniObjectPooler>();
-
-        if (_explosionDictionary.TryGetValue(item, out MMMiniObjectPooler pool))
-        {
-            aoeObj = pool.GetPooledGameObject().GetComponent<AreaOfEffect>();
-        }
-        else
-        {
-            MMMiniObjectPooler explosionPool = _abilityController.ObjectPoolerObject.AddComponent<MMMiniObjectPooler>();
-            explosionPool.NestWaitingPool = true;
-            explosionPool.PoolSize = 2;
-            explosionPool.GameObjectToPool = item.AOE.gameObject;
-            explosionPool.FillObjectPool();
-            _explosionDictionary.Add(item, explosionPool);
-            aoeObj = explosionPool.GetPooledGameObject().GetComponent<AreaOfEffect>();
-        }
-        AttackData attackData = new AttackData();
-        attackData.Damage = item.Damage;
-        attackData.GeneratedByPlayer = true;
-        attackData.Force = item.Force;
-        attackData.HitPosition = transform.position;
-        attackData = IDGenerator.GenerateID(attackData);
-        aoeObj.PlayerAttack = attackData;
-        aoeObj.AbilityController = _abilityController;
-
-        aoeObj.AOE = item.size;
-
-        aoeObj.transform.position = transform.position;
-        aoeObj.gameObject.SetActive(true);
-        aoeObj.SetOff();
-    }
 }
-
 public struct ShieldStack
 {
     public float TimeToEnd;

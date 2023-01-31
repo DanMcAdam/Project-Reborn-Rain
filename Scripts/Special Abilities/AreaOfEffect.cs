@@ -38,6 +38,13 @@ public class AreaOfEffect : MonoBehaviour
         ParticlesInstantiated = true;
     }
 
+    public void SetupParticles()
+    {
+        Vfx = Instantiate(Vfx, PlayerAttack.HitPosition, Quaternion.identity);
+        Vfx.Stop();
+        ParticlesInstantiated = true;
+    }
+
     private void Update()
     {
         if (delayed)

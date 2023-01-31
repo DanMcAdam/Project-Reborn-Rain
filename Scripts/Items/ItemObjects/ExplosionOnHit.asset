@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34b14ab0e4627a0488c862de5ebe5425, type: 3}
+  m_Name: ExplosionOnHit
+  m_EditorClassIdentifier: 
+  ItemProperties: 00000000
+  Name: Explosion On Hit
+  Description: Make Explode when hit enemy
+  Icon: {fileID: 0}
+  rarityLevel: 0
+  Time: 0
+  AOE: {fileID: 2476196547263849192, guid: 349e5ff835e84bc4fb5704cc8a571de4, type: 3}
+  Damage: 5
+  Size: 5
+  Force: 1000

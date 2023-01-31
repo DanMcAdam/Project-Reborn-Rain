@@ -168,7 +168,7 @@ public class JumpSlam : CharacterAbility
 
         if (_bonusShieldPercent > 0) 
         {
-            _abilitycontroller.PlayerStats.PlayerShield = Mathf.CeilToInt((_bonusShieldPercent * .01f) * _abilitycontroller.PlayerStats.PlayerMaxHealth);
+            _abilitycontroller.PlayerStats.AddShield(Mathf.CeilToInt((_bonusShieldPercent * .01f) * _abilitycontroller.PlayerStats.PlayerMaxHealth));
         }
 
         if (_abilitycontroller.Inputs.SecondarySpecialHeld && _extraLaunchesAvailable > 0)

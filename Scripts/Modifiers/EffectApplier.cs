@@ -1,3 +1,4 @@
+using MoreMountains.Feedbacks;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,9 +6,9 @@ using UnityEngine;
 
 public class EffectApplier : MonoBehaviour
 {
-    PlayerStats _playerStats;
-    PlayerInventory _playerInventory;
-
+    private PlayerStats _playerStats;
+    private PlayerInventory _playerInventory;
+    private PlayerAbilityController _abilityController;
     private Dictionary<BaseItem, TimerScript> _countdownItems => _playerInventory.CountdownItems;
     private List<BaseItem> _itemInventory => _playerInventory.ItemInventory;
     private float _critChance => _playerStats.PlayerCritChance;
@@ -15,6 +16,7 @@ public class EffectApplier : MonoBehaviour
 
     private void Awake()
     {
+        _abilityController = GetComponent<PlayerAbilityController>();
         _playerStats = GetComponent<PlayerStats>();
         _playerInventory = GetComponent<PlayerInventory>();
     }
@@ -37,6 +39,7 @@ public class EffectApplier : MonoBehaviour
 
     public AttackData ApplyOnEventItems(ItemProperties property, AttackData attackData)
     {
+        if (attackData.ShouldNotGenerateOnHitEffect == true) return attackData;
         foreach (BaseItem item in _itemInventory)
         {
             switch (property)
@@ -133,15 +136,16 @@ public class EffectApplier : MonoBehaviour
         }
     }
 
-    public void ApplyOnEventItems(ItemProperties property, float amount)
+    public int ApplyOnEventItems(ItemProperties property, int amount)
     {
         foreach (BaseItem item in _itemInventory)
         {
             if (item.ItemProperties.Contains(property))
             {
-                item.OnHeal(_playerStats, amount);
+                amount = item.OnHeal(_playerStats, amount);
             }
         }
+        return amount;
     }
 
     public void ApplyOnEventItems(ItemProperties property, BaseEnemy enemy)
@@ -173,5 +177,78 @@ public class EffectApplier : MonoBehaviour
             playerAttack.WasCrit = true;
         }
         return playerAttack;
+    }
+    
+    private Dictionary<IExplodeObject, MMMiniObjectPooler> _explosionDictionary;
+
+    public void SetOffPooledEvent(IExplodeObject item)
+    {
+        //TODO create script to handle all player object pools and refactor this method into it
+        //set off by: ExplosionOnTimer Scriptable Object
+
+        AreaOfEffect aoeObj;
+        aoeObj = ReturnPooledExplosion(item);
+        AttackData attackData = new AttackData();
+        attackData.Damage = item.Damage;
+        attackData.GeneratedByPlayer = true;
+        attackData.Force = item.Force;
+        attackData.HitPosition = transform.position;
+        attackData = IDGenerator.GenerateID(attackData);
+        aoeObj.PlayerAttack = attackData;
+        aoeObj.AbilityController = _abilityController;
+
+        aoeObj.AOE = item.Size;
+        if (!aoeObj.ParticlesInstantiated) aoeObj.SetupParticles();
+        aoeObj.transform.position = transform.position;
+        aoeObj.gameObject.SetActive(true);
+        aoeObj.SetOff();
+    }
+    public void SetOffPooledEvent(IExplodeObject item, Vector3 location)
+    {
+        //TODO create script to handle all player object pools and refactor this method into it
+        //set off by: ExplosionOnTimer Scriptable Object
+
+        AreaOfEffect aoeObj;
+        aoeObj = ReturnPooledExplosion(item);
+        AttackData attackData = new AttackData();
+        attackData.Damage = item.Damage;
+        attackData.GeneratedByPlayer = true;
+        attackData.Force = item.Force;
+        attackData.HitPosition = location;
+        attackData = IDGenerator.GenerateID(attackData);
+        attackData.ShouldNotGenerateOnHitEffect = true;
+        aoeObj.PlayerAttack = attackData;
+        aoeObj.AbilityController = _abilityController;
+
+        aoeObj.AOE = item.Size;
+        if (!aoeObj.ParticlesInstantiated) aoeObj.SetupParticles();
+        aoeObj.transform.position = location;
+        aoeObj.gameObject.SetActive(true);
+        aoeObj.SetOff();
+    }
+
+    private AreaOfEffect ReturnPooledExplosion(IExplodeObject item)
+    {
+        AreaOfEffect aoeObj;
+        if (_explosionDictionary == null) _explosionDictionary = new Dictionary<IExplodeObject, MMMiniObjectPooler>();
+
+        if (_explosionDictionary.TryGetValue(item, out MMMiniObjectPooler pool))
+        {
+            aoeObj = pool.GetPooledGameObject().GetComponent<AreaOfEffect>();
+        }
+        else
+        {
+            Debug.Log("Adding explosion pooler");
+            MMMiniObjectPooler explosionPool = _abilityController.ObjectPoolerObject.AddComponent<MMMiniObjectPooler>();
+            Debug.Log("explosion pooler added");
+            explosionPool.NestWaitingPool = true;
+            explosionPool.PoolSize = 2;
+            explosionPool.GameObjectToPool = item.AOE.gameObject;
+            explosionPool.FillObjectPool();
+            _explosionDictionary.Add(item, explosionPool);
+            aoeObj = explosionPool.GetPooledGameObject().GetComponent<AreaOfEffect>();
+        }
+
+        return aoeObj;
     }
 }

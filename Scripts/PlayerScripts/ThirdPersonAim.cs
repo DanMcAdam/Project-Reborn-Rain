@@ -93,7 +93,6 @@ public class ThirdPersonAim : MonoBehaviour
     private Quaternion _magazineRotation;
 
     private MMMiniObjectPooler _hitEffectPooler;
-
     private void Awake()
     {
         if (TryGetComponent<StarterAssetsInputs>(out StarterAssetsInputs assetsInputs))
@@ -337,6 +336,7 @@ public class ThirdPersonAim : MonoBehaviour
                 }
                 else if (hitTransform.TryGetComponent(out IDamageable damageable))
                 {
+                    if (damageable != null)
                     Shot(raycastHit.point, raycastHit.point, raycastHit.normal, damageable);
                 }
                 else
@@ -374,6 +374,7 @@ public class ThirdPersonAim : MonoBehaviour
 
     private void Shot(Vector3 shakePosition, Vector3 hitPosition, Vector3 hitNormal, IDamageable damageable, bool check)
     {
+        if (damageable == null) return;
         playerAttack.HitPosition = hitPosition;
         _effectApplier.ApplyAttackEffects(playerAttack, damageable);
         PlayHitEffect(hitPosition, hitNormal);
@@ -381,6 +382,7 @@ public class ThirdPersonAim : MonoBehaviour
 
     private void Shot(Vector3 shakePosition, Vector3 hitPosition, Vector3 hitNormal, IDamageable damageable)
     {
+        if (damageable == null) return;
         playerAttack.HitPosition = hitPosition;
         playerAttack = IDGenerator.GenerateID(playerAttack);
         _effectApplier.ApplyAttackEffects(playerAttack, damageable);

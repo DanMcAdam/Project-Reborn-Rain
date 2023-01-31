@@ -158,7 +158,7 @@ public class TurretBehavior : BaseEnemy, IDamageable, IDamageGiver, IEnemyBehavi
                         Destroy(collider.gameObject, Random.Range(30f, 90f));
                     }
                     _target = null;
-                    Destroy(this.gameObject);
+                    Destroy(this.gameObject, .1f);
                 }
                 break;
             default:

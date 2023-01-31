@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0921e46dfc5d4dd4982112cd16ecbd61, type: 3}
+  m_Name: ExplosionInterval
+  m_EditorClassIdentifier: 
+  ItemProperties: 0e000000
+  Name: Explosion on Timer
+  Description: Explodes every x seconds
+  Icon: {fileID: 0}
+  rarityLevel: 0
+  Time: 10
+  AOE: {fileID: 2476196547263849192, guid: 349e5ff835e84bc4fb5704cc8a571de4, type: 3}
+  Damage: 10
+  size: 3
+  Force: 1000

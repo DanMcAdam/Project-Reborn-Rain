@@ -29,7 +29,7 @@ public class BaseItem : ScriptableObject
     public virtual AttackData OnTakeHealthDamage(PlayerStats player, AttackData data) { return data; }
 
 
-    public virtual void OnHeal(PlayerStats player, float amount) { }
+    public virtual int OnHeal(PlayerStats player, int amount) { return amount; }
 
     public virtual void OnShieldBreak(PlayerStats player) { }
 
@@ -81,4 +81,13 @@ public enum ItemProperties
     OnSecondaryAbility,
     OnTimerCooldown,
     StatModifier,
+}
+
+public interface IExplodeObject
+{
+    public AreaOfEffect AOE { get; }
+    public int Damage { get; }
+    public float Size { get; }
+    public float Force { get; }
+    public float Time { get; }
 }

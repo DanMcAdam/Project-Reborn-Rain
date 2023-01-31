@@ -13,6 +13,7 @@ public struct AttackData
     public int ID;
     public bool GeneratedByPlayer;
     public bool WasCrit;
+    public bool ShouldNotGenerateOnHitEffect;
 
     public AttackData(Vector3 hitPosition, int damage, float critChance, float critMultiplier, float force, int ID, bool generatedByPlayer)
     {
@@ -24,6 +25,7 @@ public struct AttackData
         CritChance= critChance;
         CritMultiplier = critMultiplier;
         WasCrit = false;
+        ShouldNotGenerateOnHitEffect = false;
     }
 
     public AttackData(int damage, float force, int ID, bool generatedByPlayer)
@@ -36,6 +38,7 @@ public struct AttackData
         CritChance = 0;
         CritMultiplier = 0;
         WasCrit = false;
+        ShouldNotGenerateOnHitEffect = false;
     }
 
     public override string ToString()

@@ -352,6 +352,7 @@ public class PlayerAbilityController : MonoBehaviour
             EffectManager.Instance.PlayMotionBlur(transform.position);
             CurrentDashCount--;
             InterruptReload();
+            Effect.ApplyOnEventItems(ItemProperties.OnDash);
             return true;
         }
         else return false;
