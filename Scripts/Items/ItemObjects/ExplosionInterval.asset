@@ -17,7 +17,7 @@ MonoBehaviour:
   Description: Explodes every x seconds
   Icon: {fileID: 0}
   rarityLevel: 0
-  Time: 10
+  Time: 2.5
   AOE: {fileID: 2476196547263849192, guid: 349e5ff835e84bc4fb5704cc8a571de4, type: 3}
   Damage: 10
   size: 3

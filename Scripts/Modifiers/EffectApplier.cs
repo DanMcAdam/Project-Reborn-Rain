@@ -194,6 +194,7 @@ public class EffectApplier : MonoBehaviour
         attackData.Force = item.Force;
         attackData.HitPosition = transform.position;
         attackData = IDGenerator.GenerateID(attackData);
+        attackData.ShouldNotGenerateOnHitEffect = true;
         aoeObj.PlayerAttack = attackData;
         aoeObj.AbilityController = _abilityController;
 
